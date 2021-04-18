@@ -1,3 +1,9 @@
+Private_Files.*
+
+
+#------------------------------------------------
+# Stuff auto-added by Github:
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
