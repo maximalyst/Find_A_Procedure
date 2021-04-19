@@ -76,7 +76,7 @@ class CIFPLine:
                                'HC']:
             if self.table_name == 'D_':
                 self.featureName = self.data[93:118]
-            elif table_name in ['EA', 'PC', 'HC']:
+            elif self.table_name in ['EA', 'PC', 'HC']:
                 self.featureName = self.data[98:123]
             else:
                 self.featureName = self.data[93:123]
@@ -169,11 +169,11 @@ class CIFPLine:
                                      featureName,
                                      navaidIdent,
                                      DMElatitude,
-                                     DMElongitude ) 
-                     VALUES (?, ?, ?, ?, ?, ?)''',
-                  [(self.latitude,), (self.longitude,), (self.featureName,),
-                   (self.navaidIdent,), (self.DMElatitude,),
-                   (self.DMElongitude,)])
+                                     DMElongitude) 
+                           VALUES (?, ?, ?, ?, ?, ?)''',
+                       [(self.latitude,), (self.longitude,),
+                        (self.featureName,), (self.navaidIdent,),
+                        (self.DMElatitude,),(self.DMElongitude,)])
 
     def DB(self):  # NDB navaid
         pass
