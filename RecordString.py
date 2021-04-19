@@ -173,7 +173,7 @@ class CIFPLine:
                            VALUES (?, ?, ?, ?, ?, ?)''',
                        [(self.latitude,), (self.longitude,),
                         (self.featureName,), (self.navaidIdent,),
-                        (self.DMElatitude,),(self.DMElongitude,)])
+                        (self.DMElatitude,), (self.DMElongitude,)])
 
     def DB(self):  # NDB navaid
         pass
