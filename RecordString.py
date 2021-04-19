@@ -51,29 +51,25 @@ class CIFPLine:
         if self.section not in ['P', 'H']:
             if self.data[5] == ' ':
                 self.data[5] = '_'  # covers D_ (VHF navaid) case
-                self.subsection = self.data[5]
+            self.subsection = self.data[5]
         else:
             self.subsection = self.data[12]
 
         self.table_name = self.section + self.subsection
 
         if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC',
-                               'PD',
-                               'PE', 'PF',
-                               'HD', 'HE', 'HF', 'PG', 'PI', 'PP', 'PS', 'HS']:
+                               'PD', 'PE', 'PF', 'HD', 'HE', 'HF', 'PG', 'PI',
+                               'PP', 'PS', 'HS']:
             self.airHeli_portIdent = self.data[6:10]
             self.airHeli_GeoIcao = self.data[10:12]
 
         if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC',
-                               'PG',
-                               'PI', 'UR',
-                               'UC']:
+                               'PG', 'PI', 'UR', 'UC']:
             self.latitude = self.data[32:41]
             self.longitude = self.data[41:51]
 
         if self.table_name in ['D_', 'DB', 'PN', 'PA', 'HA', 'UR', 'UC', 'EA',
-                               'PC',
-                               'HC']:
+                               'PC', 'HC']:
             if self.table_name == 'D_':
                 self.featureName = self.data[93:118]
             elif self.table_name in ['EA', 'PC', 'HC']:

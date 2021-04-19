@@ -1,7 +1,7 @@
 import sqlite3
 import os
 import DatabaseSetup
-import RecordString
+from RecordString import CIFPLine
 
 if os.path.exists('CIFP_parse.sqlite'):
     os.remove('CIFP_parse.sqlite')
@@ -35,12 +35,12 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
     # now for the part we're all here for
     for a in fh:
         k += 1
-        this = a.rstrip().upper() # UPPER the line and knock off trailing \n
 
-        RecordString.parse_cifp_line(this)
+        # RecordString.parse_cifp_line(this)
+        this = CIFPLine(a.rstrip().upper(), conn)
 
         print('Got through the loop once!')
-        print(this)
+        print(this.data)
         break
         # if k == 10:
         #     conn.commit()
