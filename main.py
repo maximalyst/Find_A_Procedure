@@ -35,9 +35,12 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
     # now for the part we're all here for
     for a in fh:
         k += 1
+        # Skip all grid MORA for this version
+        if a.rstrip().upper()[4:6] == 'AS':
+            continue
 
-        # RecordString.parse_cifp_line(this)
         this = CIFPLine(a.rstrip().upper(), conn)
+        this.standard_inserts()
 
         print('Got through the loop once!')
         print(this.data)

@@ -50,8 +50,9 @@ class CIFPLine:
 
         if self.section not in ['P', 'H']:
             if self.data[5] == ' ':
-                self.data[5] = '_'  # covers D_ (VHF navaid) case
-            self.subsection = self.data[5]
+                self.subsection = '_'  # covers D_ (VHF navaid) case
+            else:
+                self.subsection = self.data[5]
         else:
             self.subsection = self.data[12]
 
@@ -158,18 +159,78 @@ class CIFPLine:
     # def AS(self, connection):  # Grid MORA
     #     c = connection.cursor()
 
+    def standard_inserts(self):
+        self.c.execute('SELECT id FROM AreaCode WHERE area = ?',
+                       (self.areaCode,))
+        areaCode_id = self.c.fetchone()[0]
+        self.c.execute('''SELECT rowid FROM SecCode WHERE
+                          (section = ?) AND (subsec = ?)''',
+                       (self.section, self.subsection,))
+        sectionCode_id = self.c.fetchone()[0]
+        self.c.execute('INSERT INTO ? (file_rec) VALUES (?)',
+                       (self.table_name, self.fileRecord,))
+        self.c.execute('INSERT INTO ? (cycle_date) VALUES (?)',
+                       (self.table_name, self.fileCycle,))
+
     def D_(self):  # VHF navaid
+        # TODO: Need INSERT OR IGNORE statements for all of these. Function?
+        self.c.execute('SELECT id FROM navaidGeoIcao WHERE code = ?',
+                       (self.navaidGeoIcao,))
+        navaidGeoIcao_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
+                       (self.airHeli_portIdent,))
+        airHeli_portIdent_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM GeoIcao WHERE code = ?',
+                       (self.airHeli_GeoIcao,))
+        airHeli_GeoIcao_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM NAVAIDclass1 WHERE class = ?',
+                       (self.navaidClass[0],))
+        navaidClass1_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM NAVAIDclass2 WHERE class = ?',
+                       (self.navaidClass[1],))
+        navaidClass2_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM NAVAIDclass3 WHERE class = ?',
+                       (self.navaidClass[2],))
+        navaidClass3_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM NAVAIDclass4 WHERE class = ?',
+                       (self.navaidClass[3],))
+        navaidClass4_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM NAVAIDclass5 WHERE class = ?',
+                       (self.navaidClass[4],))
+        navaidClass5_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM DMEident WHERE name = ?',
+                       (self.DMEident,))
+        DMEident_id = self.c.fetchone()[0]
         self.c.execute('''INSERT OR IGNORE INTO D_ (
                                      latitude,
                                      longitude,
                                      featureName,
                                      navaidIdent,
                                      DMElatitude,
-                                     DMElongitude) 
-                           VALUES (?, ?, ?, ?, ?, ?)''',
+                                     DMElongitude,
+                                     navaidGeoIcao_id,
+                                     airHeli_portIdent_id,
+                                     airHeli_GeoIcao_id,
+                                     navaidClass1_id,
+                                     navaidClass2_id,
+                                     navaidClass3_id,
+                                     navaidClass4_id,
+                                     navaidClass5_id,
+                                     DMEident_id,
+                                     areaCode_id,
+                                     sectionCode_id,
+                                     file_rec,
+                                     cycle_date) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?,
+                                   ?, ?, ?, ?, ?, ?, ?, ?,
+                                   ?, ?)''',
                        [(self.latitude,), (self.longitude,),
                         (self.featureName,), (self.navaidIdent,),
-                        (self.DMElatitude,), (self.DMElongitude,)])
+                        (self.DMElatitude,), (self.DMElongitude,),
+                        (navaidGeoIcao_id,), (airHeli_portIdent_id,),
+                        (airHeli_GeoIcao_id,), (navaidClass1_id,),
+                        (navaidClass2_id,), (navaidClass3_id,),
+                        (navaidClass4_id,), (navaidClass5_id,)])
 
     def DB(self):  # NDB navaid
         pass

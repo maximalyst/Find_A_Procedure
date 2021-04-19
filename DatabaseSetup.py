@@ -6,7 +6,7 @@ def table_define(connection):
     # Commented-out items may be added back in future versions
     KNOWN_AREACODES = [('CAN',), ('EEU',), ('LAM',), ('PAC',), ('SPA',),
                        ('USA',)]
-    KNOWN_SECCODES = [('AS',), ('D ',), ('DB',), ('EA',), ('ER',),
+    KNOWN_SECCODES = [('AS',), ('D_',), ('DB',), ('EA',), ('ER',),
                       ('HA',), ('HC',), ('HF',), ('HS',), ('PA',), ('PC',),
                       ('PD',), ('PE',), ('PF',), ('PG',), ('PI',), ('PN',),
                       ('PP',), ('PS',), ('UC',), ('UR',)]
@@ -45,7 +45,7 @@ def table_define(connection):
     c.executescript('''
     --VHF navaids
     CREATE TABLE D_ (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
         navaidIdent TEXT UNIQUE,
         navaidGeoIcao_id INTEGER,
         airHeli_portIdent_id INTEGER,
@@ -64,13 +64,13 @@ def table_define(connection):
         DMElongitude TEXT,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --Enroute NDB navaids
     CREATE TABLE DB (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
         navaidIdent TEXT UNIQUE,
         navaidGeoIcao_id INTEGER,
         airHeli_portIdent_id INTEGER,
@@ -86,13 +86,13 @@ def table_define(connection):
         navaidClass5_id INTEGER,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --Terminal NDB navaids--copy above table fields
     CREATE TABLE PN (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
         navaidIdent TEXT UNIQUE,
         navaidGeoIcao_id INTEGER,
         airHeli_portIdent_id INTEGER,
@@ -108,13 +108,13 @@ def table_define(connection):
         navaidClass5_id INTEGER,
         areaCode_id INTEGER,
         sectionCode_id INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --enroute waypoints
     CREATE TABLE EA (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
         waypointIdent TEXT UNIQUE,
         waypointIcao_id  INTEGER,
         waypointType1_id INTEGER,
@@ -128,13 +128,13 @@ def table_define(connection):
         featureName     TEXT,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --enroute airways
     CREATE TABLE ER (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
         routeIdent_id  INTEGER,
         sequenceNumber INTEGER,
         fixIdent_id    INTEGER,
@@ -149,14 +149,14 @@ def table_define(connection):
         recommendedNavaidGeoIcao_id INTEGER,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --airport ref points
     CREATE TABLE PA (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-        airHeli_portIdent_id INTEGER,
+        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
+        airHeli_portIdent TEXT,
         airHeli_GeoIcao_id   INTEGER,
         latitude        TEXT,
         longitude       TEXT,
@@ -174,13 +174,13 @@ def table_define(connection):
         DST_id          INTEGER,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --Airport terminal waypoints
     CREATE TABLE PC (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
         airHeli_portIdent_id INTEGER,
         airHeli_GeoIcao_id INTEGER,
         latitude        TEXT,
@@ -194,13 +194,13 @@ def table_define(connection):
         waypointUsage_id INTEGER,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --SIDs
     CREATE TABLE PD (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
         airHeli_portIdent_id INTEGER,
         airHeli_GeoIcao_id   INTEGER,
         fixIdent_id INTEGER,
@@ -222,13 +222,13 @@ def table_define(connection):
         routeSIDQual3_id INTEGER,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --STARs
     CREATE TABLE PE (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
         airHeli_portIdent_id INTEGER,
         airHeli_GeoIcao_id   INTEGER,
         fixIdent_id INTEGER,
@@ -250,13 +250,13 @@ def table_define(connection):
         routeSTARQual3_id INTEGER,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --Approach records
     CREATE TABLE PF (
-        id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
         airHeli_portIdent_id INTEGER,
         airHeli_GeoIcao_id   INTEGER,
         fixIdent_id INTEGER,
@@ -278,7 +278,7 @@ def table_define(connection):
         routeAppchQual3_id INTEGER,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
@@ -301,14 +301,14 @@ def table_define(connection):
         runwayDescrip   TEXT,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER,
         PRIMARY KEY (airHeli_portIdent_id, runwayIdent)
     );
     --Airport/Heliport Localizer/Glideslopes
     CREATE TABLE PI (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         airHeli_portIdent_id INTEGER,
         airHeli_GeoIcao_id INTEGER,
         latitude        TEXT,
@@ -319,30 +319,30 @@ def table_define(connection):
         runwayIdent     TEXT,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --Airport SBAS Path Points
     CREATE TABLE PP (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         airHeli_portIdent_id INTEGER,
         airHeli_GeoIcao_id   INTEGER,
         areaCode_id       INTEGER,
         sectionCode_id    INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec          INTEGER,
         cycle_date        INTEGER
         -- I really dont give AF about these in MVP
     );
     --airport MSAs:
     CREATE TABLE PS (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         airHeli_portIdent_id INTEGER,
         airHeli_GeoIcao_id   INTEGER,
         areaCode_id       INTEGER,
         sectionCode_id    INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec          INTEGER,
         cycle_date        INTEGER
         -- I really dont give AF about these in MVP
@@ -375,22 +375,22 @@ def table_define(connection):
         --SectorRadius_7      INTEGER,
     );
     CREATE TABLE UC (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
         -- I really dont give AF about these in MVP
     );
     CREATE TABLE UR (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         latitude    TEXT,
         longitude   TEXT,
         featureName TEXT,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
-        subsectionCode_id INTEGER,
+        --subsectionCode_id INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
         -- I really dont give AF about these in MVP
@@ -399,150 +399,151 @@ def table_define(connection):
     c.executescript('''
     --The following are consistent items in many entries:
     CREATE TABLE AreaCode (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         area    TEXT UNIQUE
     );
     CREATE TABLE SecCode (
-        section TEXT,
-        subsec  TEXT,
+        --id INTEGER UNIQUE,
+        section TEXT NOT NULL,
+        subsec  TEXT NOT NULL,
         PRIMARY KEY (section, subsec)
     );
     CREATE TABLE DMEident (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         name    TEXT
     );
     CREATE TABLE GeoIcao (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         code    TEXT
     );
     CREATE TABLE NAVAIDclass1 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         class   TEXT UNIQUE
     );
     CREATE TABLE NAVAIDclass2 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         class   TEXT UNIQUE
     );
     CREATE TABLE NAVAIDclass3 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         class   TEXT UNIQUE
     );
     CREATE TABLE NAVAIDclass4 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         class   TEXT UNIQUE
     );
     CREATE TABLE NAVAIDclass5 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         class   TEXT UNIQUE
     );
     CREATE TABLE WaypointType1 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         type    TEXT UNIQUE
     );
     CREATE TABLE WaypointType2 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         type    TEXT UNIQUE
     );
     CREATE TABLE WaypointType3 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         type    TEXT UNIQUE
     );
     CREATE TABLE WaypointUsage (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         usage   TEXT UNIQUE
     );
     CREATE TABLE RouteIdent (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         name    TEXT UNIQUE
     );
     CREATE TABLE waypointDescription1 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         desc    TEXT UNIQUE
     );
     CREATE TABLE waypointDescription2 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         desc    TEXT UNIQUE
     );
     CREATE TABLE waypointDescription3 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         desc    TEXT UNIQUE
     );
     CREATE TABLE waypointDescription4 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         desc    TEXT UNIQUE
     );
     CREATE TABLE IATAcode ( --created with table PA
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         code    TEXT UNIQUE
     );
     CREATE TABLE hasIFR (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         flag    TEXT UNIQUE
     );
     CREATE TABLE publicOrMilitary (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         flag    TEXT UNIQUE
     );
     CREATE TABLE DST (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         flag    TEXT UNIQUE
     );
     CREATE TABLE routeTypeSID (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         type    TEXT UNIQUE
     );
     --Don't do "routeTypeSTAR" because routeType for STAR is 1, 2, and 3,
     --so we do the value directly in the PF table
     CREATE TABLE routeTypeApproach (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         type    TEXT UNIQUE
     );
     CREATE TABLE routeSIDQual1 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         qual    TEXT UNIQUE
     );
     CREATE TABLE routeSIDQual2 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         qual    TEXT UNIQUE
     );
     CREATE TABLE routeSIDQual3 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         qual    TEXT UNIQUE
     );
     CREATE TABLE routeSTARQual1 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         qual    TEXT UNIQUE
     );
     CREATE TABLE routeSTARQual2 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         qual    TEXT UNIQUE
     );
     CREATE TABLE routeSTARQual3 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         qual    TEXT UNIQUE
     );
     CREATE TABLE routeAppchQual1 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         qual    TEXT UNIQUE
     );
     CREATE TABLE routeAppchQual2 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         qual    TEXT UNIQUE
     );
     CREATE TABLE routeAppchQual3 (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         qual    TEXT UNIQUE
     );
     CREATE TABLE speedLimitDescription (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         descrip TEXT UNIQUE
     );
     CREATE TABLE ILScategory (
-        id       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id       INTEGER NOT NULL PRIMARY KEY UNIQUE,
         category TEXT
     );
     CREATE TABLE aircraftDesignType (
-        id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         type    TEXT UNIQUE
     );
 
@@ -550,7 +551,7 @@ def table_define(connection):
 
     --Old things I'm not ready to delete yet
     --CREATE TABLE transitionIdent (
-    --    id      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    --    id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
     --    type    TEXT UNIQUE
     --);
 ''')
