@@ -1,6 +1,46 @@
-from string import ascii_uppercase# needed for A-Z string shortcut
+from string import ascii_uppercase  # needed for A-Z string shortcut
 
-def TableDefine(connection):
+
+def table_define(connection):
+    # Constants, for cleanliness
+    # Commented-out items may be added back in future versions
+    KNOWN_AREACODES = [('CAN',), ('EEU',), ('LAM',), ('PAC',), ('SPA',),
+                       ('USA',)]
+    KNOWN_SECCODES = [('AS',), ('D ',), ('DB',), ('EA',), ('ER',),
+                      ('HA',), ('HC',), ('HF',), ('HS',), ('PA',), ('PC',),
+                      ('PD',), ('PE',), ('PF',), ('PG',), ('PI',), ('PN',),
+                      ('PP',), ('PS',), ('UC',), ('UR',)]
+    # ROUTE_TYPES_ER = [('A',),('C',),('D',),('H',),('O',),('R',),('S',),('T',)]
+    # ROUTE_TYPES_RTE_QUAL1 = [('G',),('F',),('A',),('U',)]
+    # ROUTE_TYPES_RTE_QUAL2 = [('R',),('P',),('T',)]
+    # ROUTE_TYPES_RTE_QUAL3 = [('W',),('Z',),('Y',),('X',),('B',),('P',),('C',),('D',),
+    #     ('E',),('A',),('G',),('U',),('V',),('N',)]
+    ROUTE_TYPES_SIDS = [('0',), ('1',), ('2',), ('3',), ('T',), ('V',)]
+    ROUTE_TYPES_SIDQUAL1 = [('D',), ('G',), ('R',), ('H',), ('P',)]
+    ROUTE_TYPES_SIDQUAL2 = [('D',), ('E',), ('F',), ('G',), ('W',), ('X',)]
+    ROUTE_TYPES_SIDQUAL3 = [('Z',), ('Y',), ('X',), ('B',), ('P',), ('D',),
+                            ('E',), ('F',),
+                            ('A',), ('G',), ('M',), ('U',), ('V',)]
+    # Note: No ROUTE_TYPES_STAR because they are just [1,2,3]
+    ROUTE_TYPES_STARQUAL1 = ROUTE_TYPES_SIDQUAL1
+    ROUTE_TYPES_STARQUAL2 = [('D',), ('E',), ('F',), ('G',)]
+    ROUTE_TYPES_STARQUAL3 = ROUTE_TYPES_SIDQUAL3
+    ROUTE_TYPES_APPCH = [('A',), ('B',), ('D',), ('F',), ('G',), ('H',),
+                         ('I',), ('J',), ('L',),
+                         ('M',), ('N',), ('P',), ('Q',), ('R',), ('S',),
+                         ('T',), ('U',), ('V',), ('X',), ('Z',)]
+    ROUTE_TYPES_APPCH_QUAL1 = [('D',), ('J',), ('N',), ('P',), ('R',), ('T',),
+                               ('U',), ('V',), ('W',)]
+    ROUTE_TYPES_APPCH_QUAL2 = [('X',), ('E',), ('H',), ('G',), ('A',), ('F',),
+                               ('B',)]
+    ROUTE_TYPES_APPCH_QUAL3 = [('A',), ('B',), ('E',), ('C',), ('H',), ('I',),
+                               ('L',), ('S',), ('V',), ('W',), ('X',)]
+    ILS_CATS = [('0',), ('1',), ('2',), ('3',), ('I',), ('L',), ('A',), ('S',),
+                ('F',)]
+    # PATH_TYPES = [('AF',),('CA',),('CD',),('CF',),('CI',),('CR',),('DF',),('FA',),('FC',),('FD',),
+    #               ('FM',),('HA',),('HF',),('HM',),('IF',),('PI',),('RF',),('TF',),('VA',),('VD',),
+    #               ('VI',),('VM',),('VR',)]
+
     c = connection.cursor()
     c.executescript('''
     --VHF navaids
@@ -356,8 +396,6 @@ def TableDefine(connection):
         -- I really dont give AF about these in MVP
     );
     ''')
-
-
     c.executescript('''
     --The following are consistent items in many entries:
     CREATE TABLE AreaCode (
@@ -517,73 +555,65 @@ def TableDefine(connection):
     --);
 ''')
 
-    #Constants, for cleanliness
-    #Commented-out items may be added back in future versions
-    KNOWN_AREACODES = [('CAN',),('EEU',),('LAM',),('PAC',),('SPA',),('USA',)]
-    KNOWN_SECCODES = [('AS',),('D ',),('DB',),('EA',),('ER',),
-        ('HA',),('HC',),('HF',),('HS',),('PA',),('PC',),
-        ('PD',),('PE',),('PF',),('PG',),('PI',),('PN',),
-        ('PP',),('PS',),('UC',),('UR',)]
-    # ROUTE_TYPES_ER = [('A',),('C',),('D',),('H',),('O',),('R',),('S',),('T',)]
-    # ROUTE_TYPES_RTE_QUAL1 = [('G',),('F',),('A',),('U',)]
-    # ROUTE_TYPES_RTE_QUAL2 = [('R',),('P',),('T',)]
-    # ROUTE_TYPES_RTE_QUAL3 = [('W',),('Z',),('Y',),('X',),('B',),('P',),('C',),('D',),
-    #     ('E',),('A',),('G',),('U',),('V',),('N',)]
-    ROUTE_TYPES_SIDS = [('0',),('1',),('2',),('3',),('T',),('V',)]
-    ROUTE_TYPES_SIDQUAL1 = [('D',),('G',),('R',),('H',),('P',)]
-    ROUTE_TYPES_SIDQUAL2 = [('D',),('E',),('F',),('G',),('W',),('X',)]
-    ROUTE_TYPES_SIDQUAL3 = [('Z',),('Y',),('X',),('B',),('P',),('D',),('E',),('F',),
-        ('A',),('G',),('M',),('U',),('V',)]
-    # Note: No ROUTE_TYPES_STAR because they are just [1,2,3]
-    ROUTE_TYPES_STARQUAL1 = ROUTE_TYPES_SIDQUAL1
-    ROUTE_TYPES_STARQUAL2 = [('D',),('E',),('F',),('G',)]
-    ROUTE_TYPES_STARQUAL3 = ROUTE_TYPES_SIDQUAL3
-    ROUTE_TYPES_APPCH = [('A',),('B',),('D',),('F',),('G',),('H',),('I',),('J',),('L',),
-        ('M',),('N',),('P',),('Q',),('R',),('S',),('T',),('U',),('V',),('X',),('Z',)]
-    ROUTE_TYPES_APPCH_QUAL1 = [('D',),('J',),('N',),('P',),('R',),('T',),('U',),('V',),('W',)]
-    ROUTE_TYPES_APPCH_QUAL2 = [('X',),('E',),('H',),('G',),('A',),('F',),('B',)]
-    ROUTE_TYPES_APPCH_QUAL3 = [('A',),('B',),('E',),('C',),('H',),('I',),('L',),('S',),('V',),('W',),('X',)]
-    ILS_CATS = [('0',),('1',),('2',),('3',),('I',),('L',),('A',),('S',),('F',)]
-    # PATH_TYPES = [('AF',),('CA',),('CD',),('CF',),('CI',),('CR',),('DF',),('FA',),('FC',),('FD',),
-    #               ('FM',),('HA',),('HF',),('HM',),('IF',),('PI',),('RF',),('TF',),('VA',),('VD',),
-    #               ('VI',),('VM',),('VR',)]
-
-
-    c.executemany('''INSERT INTO AreaCode (area) VALUES (?);''', KNOWN_AREACODES)
+    c.executemany('''INSERT INTO AreaCode (area) VALUES (?);''',
+                  KNOWN_AREACODES)
     for each in KNOWN_SECCODES:
         c.execute('''INSERT INTO SecCode (section,subsec) VALUES (?,?);''',
-            (each[0][0],each[0][1]))
+                  (each[0][0], each[0][1]))
     c.execute('''INSERT INTO NAVAIDclass1 (class) VALUES (?);''', ('V',))
-    c.executemany('''INSERT INTO NAVAIDclass2 (class) VALUES (?);''',[('D',),('T',),('M',),('I',),('N',),('P',)])
-    c.executemany('''INSERT INTO NAVAIDclass3 (class) VALUES (?);''',[('T',),('L',),('H',),('U',),('C',)])
-    c.executemany('''INSERT INTO NAVAIDclass4 (class) VALUES (?);''',[('D',),('A',),('B',),('W',),(' ',)])
-    c.executemany('''INSERT INTO NAVAIDclass5 (class) VALUES (?);''',[(' ',),('N',)])
+    c.executemany('''INSERT INTO NAVAIDclass2 (class) VALUES (?);''',
+                  [('D',), ('T',), ('M',), ('I',), ('N',), ('P',)])
+    c.executemany('''INSERT INTO NAVAIDclass3 (class) VALUES (?);''',
+                  [('T',), ('L',), ('H',), ('U',), ('C',)])
+    c.executemany('''INSERT INTO NAVAIDclass4 (class) VALUES (?);''',
+                  [('D',), ('A',), ('B',), ('W',), (' ',)])
+    c.executemany('''INSERT INTO NAVAIDclass5 (class) VALUES (?);''',
+                  [(' ',), ('N',)])
     c.executemany('''INSERT INTO aircraftDesignType (type) VALUES (?);''',
-        [each for each in (list(ascii_uppercase)[:-1]+[' '])])
+                  [each for each in (list(ascii_uppercase)[:-1] + [' '])])
     c.executemany('''INSERT INTO waypointDescription1 (desc) VALUES (?);''',
-        [('A',),('E',),('F',),('G',),('H',),('N',),('P',),('R',),('T',),('V',)])
+                  [('A',), ('E',), ('F',), ('G',), ('H',), ('N',), ('P',),
+                   ('R',), ('T',), ('V',)])
     c.executemany('''INSERT INTO waypointDescription2 (desc) VALUES (?);''',
-        [('B',),('E',),('U',),('Y',)])
+                  [('B',), ('E',), ('U',), ('Y',)])
     c.executemany('''INSERT INTO waypointDescription3 (desc) VALUES (?);''',
-        [('A',),('B',),('C',),('G',),('M',),('R',),('S',)])
+                  [('A',), ('B',), ('C',), ('G',), ('M',), ('R',), ('S',)])
     c.executemany('''INSERT INTO waypointDescription4 (desc) VALUES (?);''',
-        [each for each in (list(ascii_uppercase)[0:9]+['M','N','P'])])
-    c.executemany('''INSERT INTO hasIFR (flag) VALUES (?);''', [('N',),('Y',)])
-    c.executemany('''INSERT INTO publicOrMilitary (flag) VALUES (?);''', [('C',),('M',),('P',),('J',)])
-    c.executemany('''INSERT INTO DST (flag) VALUES (?);''', [('N',),('Y',)]) #0 for No, 1 for Yes
-    c.executemany('''INSERT INTO routeTypeSID (type) VALUES (?);''', ROUTE_TYPES_SIDS)
-    c.executemany('''INSERT INTO routeTypeApproach (type) VALUES (?);''', ROUTE_TYPES_APPCH)
-    c.executemany('''INSERT INTO routeSIDQual1 (qual) VALUES (?);''', ROUTE_TYPES_SIDQUAL1)
-    c.executemany('''INSERT INTO routeSIDQual2 (qual) VALUES (?);''', ROUTE_TYPES_SIDQUAL2)
-    c.executemany('''INSERT INTO routeSIDQual3 (qual) VALUES (?);''', ROUTE_TYPES_SIDQUAL3)
-    c.executemany('''INSERT INTO routeSTARQual1 (qual) VALUES (?);''', ROUTE_TYPES_STARQUAL1)
-    c.executemany('''INSERT INTO routeSTARQual2 (qual) VALUES (?);''', ROUTE_TYPES_STARQUAL2)
-    c.executemany('''INSERT INTO routeSTARQual3 (qual) VALUES (?);''', ROUTE_TYPES_STARQUAL3)
-    c.executemany('''INSERT INTO routeAppchQual1 (qual) VALUES (?);''', ROUTE_TYPES_APPCH_QUAL1)
-    c.executemany('''INSERT INTO routeAppchQual2 (qual) VALUES (?);''', ROUTE_TYPES_APPCH_QUAL2)
-    c.executemany('''INSERT INTO routeAppchQual3 (qual) VALUES (?);''', ROUTE_TYPES_APPCH_QUAL3)
-    c.executemany('''INSERT INTO speedLimitDescription (descrip) VALUES (?);''', [(' ',),('+',),('-',)])
-    c.executemany('''INSERT INTO ILScategory (category) VALUES (?);''', ILS_CATS)
+                  [each for each in
+                   (list(ascii_uppercase)[0:9] + ['M', 'N', 'P'])])
+    c.executemany('''INSERT INTO hasIFR (flag) VALUES (?);''',
+                  [('N',), ('Y',)])
+    c.executemany('''INSERT INTO publicOrMilitary (flag) VALUES (?);''',
+                  [('C',), ('M',), ('P',), ('J',)])
+    c.executemany('''INSERT INTO DST (flag) VALUES (?);''',
+                  [('N',), ('Y',)])  # 0 for No, 1 for Yes
+    c.executemany('''INSERT INTO routeTypeSID (type) VALUES (?);''',
+                  ROUTE_TYPES_SIDS)
+    c.executemany('''INSERT INTO routeTypeApproach (type) VALUES (?);''',
+                  ROUTE_TYPES_APPCH)
+    c.executemany('''INSERT INTO routeSIDQual1 (qual) VALUES (?);''',
+                  ROUTE_TYPES_SIDQUAL1)
+    c.executemany('''INSERT INTO routeSIDQual2 (qual) VALUES (?);''',
+                  ROUTE_TYPES_SIDQUAL2)
+    c.executemany('''INSERT INTO routeSIDQual3 (qual) VALUES (?);''',
+                  ROUTE_TYPES_SIDQUAL3)
+    c.executemany('''INSERT INTO routeSTARQual1 (qual) VALUES (?);''',
+                  ROUTE_TYPES_STARQUAL1)
+    c.executemany('''INSERT INTO routeSTARQual2 (qual) VALUES (?);''',
+                  ROUTE_TYPES_STARQUAL2)
+    c.executemany('''INSERT INTO routeSTARQual3 (qual) VALUES (?);''',
+                  ROUTE_TYPES_STARQUAL3)
+    c.executemany('''INSERT INTO routeAppchQual1 (qual) VALUES (?);''',
+                  ROUTE_TYPES_APPCH_QUAL1)
+    c.executemany('''INSERT INTO routeAppchQual2 (qual) VALUES (?);''',
+                  ROUTE_TYPES_APPCH_QUAL2)
+    c.executemany('''INSERT INTO routeAppchQual3 (qual) VALUES (?);''',
+                  ROUTE_TYPES_APPCH_QUAL3)
+    c.executemany(
+        '''INSERT INTO speedLimitDescription (descrip) VALUES (?);''',
+        [(' ',), ('+',), ('-',)])
+    c.executemany('''INSERT INTO ILScategory (category) VALUES (?);''',
+                  ILS_CATS)
 
     # old things that I might come back to
     # c.executemany('''INSERT INTO ATCindicator (flag) VALUES (?);''', [('A',),('S',)])
@@ -594,3 +624,4 @@ def TableDefine(connection):
     # c.executemany('''INSERT INTO waypointUsage (code) VALUES (?);''', [('B',),('H',),('L',),(' ',)])
 
     connection.commit()
+

@@ -14,7 +14,7 @@
 #         else: self.subsection = line[12]
 #
 #
-''' Flow through each loop of CFIP data:
+""" Flow through each loop of CFIP data:
     Read line
     Remove trailing \n and force upper case
     ^^^ Did the above in the loop itself
@@ -25,120 +25,208 @@
         If it is, get subsection -- line[12]
         If it isn't, get subsection -- line[5]
 
-    Depending on sectionsubsection, input data into databse
+    Depending on section/subsection, input data into database
         Get "standard" features from each section--line[xx:yy]
         Input repeated data (ex. airport abbrevs) into ID tables
         Reference ID tables into line's database entry
         Input unique data (ex. lat/long) into line's database entry
-'''
+"""
 
-# 'l' is the line of the CFIP we're looking at.
+
+# 'l' is the line of the CIFP we're looking at.
 
 # Naming convention: my functions are going to be prefaced with 'r'
 
+class CIFPLine:
+    def __init__(self, data, connection):
+        self.data = data
+        self.connection = connection
+        self.recordType = self.data[0]
+        self.areaCode = self.data[1:4]
+        self.section = self.data[4]
+        self.fileRecord = self.data[123:128]
+        self.fileCycle = self.data[128:]
 
-def Parse_CFIP_Line(l):
-    recordType = l[0]
-    areaCode = l[1:4]
-    section = l[4]
-    fileRecord = l[123:128]
-    fileCycle = l[128:]
-
-    if l[4] not in ['P','H']:
-        if l[5] == ' ': l[5] = '_'   # covers D_ (VHF navaid) case
-        subsection = l[5]
-    else: subsection = l[12]
-
-    tableName = section + subsection
-
-    if tableName in ['D_','DB','PN','EA','PC','PA','HA','HC','PD','PE','PF',
-            'HD','HE','HF','PG','PI','PP','PS','HS']:
-        airHeli_portIdent = l[6:10]
-        airHeli_GeoIcao = l[10:12]
-
-    if tableName in ['D_','DB','PN','EA','PC','PA','HA','HC','PG','PI','UR',
-            'UC']:
-        latitude = l[32:41]
-        longitude = l[41:51]
-
-    if tableName in ['D_','DB','PN','PA','HA','UR','UC','EA','PC','HC']:
-        if tableName == 'D_': featureName = l[93:118]
-        elif tableName in ['EA','PC','HC']: featureName = l[98:123]
-        else: featureName = l[93:123]
-
-    if tableName in ['D_','DB','PN']:
-        navaidIdent = l[13:17]
-        navaidGeoIcao = l[19:21]
-        navaidFrequency = l[22:27]
-        navaidClass = l[27:32]
-        if tableName == 'D_':
-            DMEident = l[51:55]
-            DMElatitude = l[55:64]
-            DMElongitude = l[64:74]
-
-    if tableName in ['PA','HA']:
-        IATAcode = l[13:16]
-        speedLimitAltitude = l[22:27]
-        hasIFR = l[30]
-        magneticVariation = l[51:56]
-        elevation = l[56:61]
-        speedLimit = l[61:64]
-        recommendedNavaid = l[64:68]
-        recommendedNavaidGeoIcao = l[68:70]
-        publicOrMilitary = l[80]
-        timeZone = l[81:84]
-        DST = l[84]
-        if tableName == 'PA':
-            longestRunway = l[27:30]
-            longRunwaySurface = l[31]
-        else: heliportType = l[31]
-
-    if tableName in ['ER','PD','PE','PF','HD','HE','HF']:
-        fixIdent = l[29:34]
-        fixIcao = l[34:36]
-        fixSectionCode = l[36]
-        fixSubsectionCode = l[37]
-        descriptionCode = l[39:43]
-        recommendedNavaid = l[50:54]
-        recommendedNavaidGeoIcao = l[54:56]
-        if tableName in ['PD','PE','PF','HD','HE','HF']:
-            SidStarApproachIdent = l[13:19]
-            routeType = l[20]
-            transitionIdent = l[20:25]
-            aircraftDesignTypes = l[25]
-            sequenceNumber = l[26:29]
-            speedLimit = l[99:102]
-            speedLimitDescription = l[117]
-            routeQual1 = l[118]
-            routeQual2 = l[119]
-            routeQual3 = l[120]
+        if self.section not in ['P', 'H']:
+            if self.data[5] == ' ':
+                self.data[5] = '_'  # covers D_ (VHF navaid) case
+                self.subsection = self.data[5]
         else:
-            routeIdent = l[13:18]
-            sequenceNumber = l[25:29]
+            self.subsection = self.data[12]
 
-    if tableName in ['EA','PC','HC']:
-        waypointIdent = l[13:18]
-        waypointIcao = l[19:21]
-        waypointType1 = l[26]
-        waypointType2 = l[27]
-        waypointType3 = l[28]
-        waypointusage = l[30]
+        self.table_name = self.section + self.subsection
 
-    if tableName == 'PG':
-        runwayIdent = l[13:18]
-        runwayLength = l[22:27]
-        runwayBearing = l[27:31]
-        runwayGradient = l[51:56]
-        landingThresholdElev = l[66:71]
-        displacedTresholdLength = l[71:75]
-        runwayWidth = l[7780]
-        TCHvalueIndicator = l[80]
-        stopwayLength = l[86:90]
-        thresholdCrossingHeight = l[95:98]
-        runwayDescrip = l[101:123]
+        if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC', 'PD',
+                          'PE', 'PF',
+                          'HD', 'HE', 'HF', 'PG', 'PI', 'PP', 'PS', 'HS']:
+            self.airHeli_portIdent = self.data[6:10]
+            self.airHeli_GeoIcao = self.data[10:12]
 
-    if tableName == 'PI':
-        localizerIdent = l[13:17]
-        ILScategory = l[17]
-        localizerFreq = l[22:27]
-        runwayIdent = l[27:32]
+        if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC', 'PG',
+                          'PI', 'UR',
+                          'UC']:
+            self.latitude = self.data[32:41]
+            self.longitude = self.data[41:51]
+
+        if self.table_name in ['D_', 'DB', 'PN', 'PA', 'HA', 'UR', 'UC', 'EA', 'PC',
+                          'HC']:
+            if self.table_name == 'D_':
+                self.featureName = self.data[93:118]
+            elif table_name in ['EA', 'PC', 'HC']:
+                self.featureName = self.data[98:123]
+            else:
+                self.featureName = self.data[93:123]
+
+        if self.table_name in ['D_', 'DB', 'PN']:
+            self.navaidIdent = self.data[13:17]
+            self.navaidGeoIcao = self.data[19:21]
+            self.navaidFrequency = self.data[22:27]
+            self.navaidClass = self.data[27:32]
+            if self.table_name == 'D_':
+                self.DMEident = self.data[51:55]
+                self.DMElatitude = self.data[55:64]
+                self.DMElongitude = self.data[64:74]
+
+        if self.table_name in ['PA', 'HA']:
+            self.IATAcode = self.data[13:16]
+            self.speedLimitAltitude = self.data[22:27]
+            self.hasIFR = self.data[30]
+            self.magneticVariation = self.data[51:56]
+            self.elevation = self.data[56:61]
+            self.speedLimit = self.data[61:64]
+            self.recommendedNavaid = self.data[64:68]
+            self.recommendedNavaidGeoIcao = self.data[68:70]
+            self.publicOrMilitary = self.data[80]
+            self.timeZone = self.data[81:84]
+            self.DST = self.data[84]
+            if self.table_name == 'PA':
+                self.longestRunway = self.data[27:30]
+                self.longRunwaySurface = self.data[31]
+            else:
+                self.heliportType = self.data[31]
+
+        if self.table_name in ['ER', 'PD', 'PE', 'PF', 'HD', 'HE', 'HF']:
+            self.fixIdent = self.data[29:34]
+            self.fixIcao = self.data[34:36]
+            self.fixSectionCode = self.data[36]
+            self.fixSubsectionCode = self.data[37]
+            self.descriptionCode = self.data[39:43]
+            self.recommendedNavaid = self.data[50:54]
+            self.recommendedNavaidGeoIcao = self.data[54:56]
+            if self.table_name in ['PD', 'PE', 'PF', 'HD', 'HE', 'HF']:
+                self.SidStarApproachIdent = self.data[13:19]
+                self.routeType = self.data[20]
+                self.transitionIdent = self.data[20:25]
+                self.aircraftDesignTypes = self.data[25]
+                self.sequenceNumber = self.data[26:29]
+                self.speedLimit = self.data[99:102]
+                self.speedLimitDescription = self.data[117]
+                self.routeQual1 = self.data[118]
+                self.routeQual2 = self.data[119]
+                self.routeQual3 = self.data[120]
+            else:
+                self.routeIdent = self.data[13:18]
+                self.sequenceNumber = self.data[25:29]
+
+        if self.table_name in ['EA', 'PC', 'HC']:
+            self.waypointIdent = self.data[13:18]
+            self.waypointIcao = self.data[19:21]
+            self.waypointType1 = self.data[26]
+            self.waypointType2 = self.data[27]
+            self.waypointType3 = self.data[28]
+            self.waypointusage = self.data[30]
+
+        if self.table_name == 'PG':
+            self.runwayIdent = self.data[13:18]
+            self.runwayLength = self.data[22:27]
+            self.runwayBearing = self.data[27:31]
+            self.runwayGradient = self.data[51:56]
+            self.landingThresholdElev = self.data[66:71]
+            self.displacedTresholdLength = self.data[71:75]
+            self.runwayWidth = self.data[7780]
+            self.TCHvalueIndicator = self.data[80]
+            self.stopwayLength = self.data[86:90]
+            self.thresholdCrossingHeight = self.data[95:98]
+            self.runwayDescrip = self.data[101:123]
+
+        if self.table_name == 'PI':
+            self.localizerIdent = self.data[13:17]
+            self.ILScategory = self.data[17]
+            self.localizerFreq = self.data[22:27]
+            self.runwayIdent = self.data[27:32]
+
+
+
+    # def AS(self, connection):  # Grid MORA
+    #     c = connection.cursor()
+
+    def D_(self, connection):  # VHF navaid
+        c = connection.cursor()
+        c.execute('''INSERT OR IGNORE INTO D_ (
+                                     latitude,
+                                     longitude,
+                                     featureName,
+                                     navaidIdent,
+                                     DMElatitude,
+                                     DMElongitude ) 
+                     VALUES (?, ?, ?, ?, ?, ?)''',
+                  [(self.latitude,), (self.longitude,), (self.featureName,),
+                   (self.navaidIdent,), (self.DMElatitude,),
+                   (self.DMElongitude,)])
+
+    def DB(self, connection):  # NDB navaid
+        c = connection.cursor()
+
+    def EA(self, connection):  # Enroute Waypoint
+        c = connection.cursor()
+
+    def ER(self, connection):  # Enroute Airway/Route
+        c = connection.cursor()
+
+    def HA(self, connection):  # Heliport reference point
+        c = connection.cursor()
+
+    def HC(self, connection):  # Heliport terminal waypoint
+        c = connection.cursor()
+
+    def HF(self, connection):  # Heliport approach procedure
+        c = connection.cursor()
+
+    def HS(self, connection):  # Heliport MSA
+        c = connection.cursor()
+
+    def PA(self, connection):  # Airport reference point
+        c = connection.cursor()
+
+    def PC(self, connection):  # Airport terminal waypoint
+        c = connection.cursor()
+
+    def PD(self, connection):  # Airport SID
+        c = connection.cursor()
+
+    def PE(self, connection):  # Airport STAR
+        c = connection.cursor()
+
+    def PF(self, connection):  # Airport Approach
+        c = connection.cursor()
+
+    def PG(self, connection):  # Airport Runway
+        c = connection.cursor()
+
+    def PI(self, connection):  # Airport Localizer/Glideslope
+        c = connection.cursor()
+
+    def PN(self, connection):  # Airport Terminal NDB
+        c = connection.cursor()
+
+    def PP(self, connection):  # Airport SBAS Path Point
+        c = connection.cursor()
+
+    def PS(self, connection):  # Airport MSA
+        c = connection.cursor()
+
+    def UC(self, connection):  # Controlled airspace
+        c = connection.cursor()
+
+    def UR(self, connection):  # Restrictive airspace
+        c = connection.cursor()

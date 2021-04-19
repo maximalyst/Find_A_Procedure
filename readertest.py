@@ -10,7 +10,7 @@
 # Just want to output how many of each record type is in FAACIFP18, so I don't
 # do needless work
 
-'''
+"""
 Areas I found:
 AS: Grid MORA
 D_: VHF navaid
@@ -33,9 +33,9 @@ PP: Airport SBAS Path Point
 PS: Airport MSA
 UC: Controlled airspace
 UR: Restrictive airspace
-'''
+"""
 
-import pprint #pretty printing dictionaries
+import pprint  #pretty printing dictionaries
 
 print("Blank for default file")
 filename = input('Path to filename: ')
