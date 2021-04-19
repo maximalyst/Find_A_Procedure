@@ -41,6 +41,7 @@ class CIFPLine:
     def __init__(self, data, connection):
         self.data = data
         self.connection = connection
+        self.c = self.connection.cursor()
         self.recordType = self.data[0]
         self.areaCode = self.data[1:4]
         self.section = self.data[4]
@@ -56,20 +57,23 @@ class CIFPLine:
 
         self.table_name = self.section + self.subsection
 
-        if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC', 'PD',
-                          'PE', 'PF',
-                          'HD', 'HE', 'HF', 'PG', 'PI', 'PP', 'PS', 'HS']:
+        if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC',
+                               'PD',
+                               'PE', 'PF',
+                               'HD', 'HE', 'HF', 'PG', 'PI', 'PP', 'PS', 'HS']:
             self.airHeli_portIdent = self.data[6:10]
             self.airHeli_GeoIcao = self.data[10:12]
 
-        if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC', 'PG',
-                          'PI', 'UR',
-                          'UC']:
+        if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC',
+                               'PG',
+                               'PI', 'UR',
+                               'UC']:
             self.latitude = self.data[32:41]
             self.longitude = self.data[41:51]
 
-        if self.table_name in ['D_', 'DB', 'PN', 'PA', 'HA', 'UR', 'UC', 'EA', 'PC',
-                          'HC']:
+        if self.table_name in ['D_', 'DB', 'PN', 'PA', 'HA', 'UR', 'UC', 'EA',
+                               'PC',
+                               'HC']:
             if self.table_name == 'D_':
                 self.featureName = self.data[93:118]
             elif table_name in ['EA', 'PC', 'HC']:
@@ -155,14 +159,11 @@ class CIFPLine:
             self.localizerFreq = self.data[22:27]
             self.runwayIdent = self.data[27:32]
 
-
-
     # def AS(self, connection):  # Grid MORA
     #     c = connection.cursor()
 
-    def D_(self, connection):  # VHF navaid
-        c = connection.cursor()
-        c.execute('''INSERT OR IGNORE INTO D_ (
+    def D_(self):  # VHF navaid
+        self.c.execute('''INSERT OR IGNORE INTO D_ (
                                      latitude,
                                      longitude,
                                      featureName,
@@ -174,59 +175,59 @@ class CIFPLine:
                    (self.navaidIdent,), (self.DMElatitude,),
                    (self.DMElongitude,)])
 
-    def DB(self, connection):  # NDB navaid
-        c = connection.cursor()
+    def DB(self):  # NDB navaid
+        pass
 
     def EA(self, connection):  # Enroute Waypoint
-        c = connection.cursor()
+        pass
 
     def ER(self, connection):  # Enroute Airway/Route
-        c = connection.cursor()
+        pass
 
     def HA(self, connection):  # Heliport reference point
-        c = connection.cursor()
+        pass
 
     def HC(self, connection):  # Heliport terminal waypoint
-        c = connection.cursor()
+        pass
 
     def HF(self, connection):  # Heliport approach procedure
-        c = connection.cursor()
+        pass
 
     def HS(self, connection):  # Heliport MSA
-        c = connection.cursor()
+        pass
 
     def PA(self, connection):  # Airport reference point
-        c = connection.cursor()
+        pass
 
     def PC(self, connection):  # Airport terminal waypoint
-        c = connection.cursor()
+        pass
 
     def PD(self, connection):  # Airport SID
-        c = connection.cursor()
+        pass
 
     def PE(self, connection):  # Airport STAR
-        c = connection.cursor()
+        pass
 
     def PF(self, connection):  # Airport Approach
-        c = connection.cursor()
+        pass
 
     def PG(self, connection):  # Airport Runway
-        c = connection.cursor()
+        pass
 
     def PI(self, connection):  # Airport Localizer/Glideslope
-        c = connection.cursor()
+        pass
 
     def PN(self, connection):  # Airport Terminal NDB
-        c = connection.cursor()
+        pass
 
     def PP(self, connection):  # Airport SBAS Path Point
-        c = connection.cursor()
+        pass
 
     def PS(self, connection):  # Airport MSA
-        c = connection.cursor()
+        pass
 
     def UC(self, connection):  # Controlled airspace
-        c = connection.cursor()
+        pass
 
     def UR(self, connection):  # Restrictive airspace
-        c = connection.cursor()
+        pass
