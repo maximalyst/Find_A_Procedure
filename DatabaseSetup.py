@@ -156,7 +156,7 @@ def table_define(connection):
     --airport ref points
     CREATE TABLE PA (
         id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        airHeli_portIdent TEXT,
+        airHeli_portIdent TEXT UNIQUE,
         airHeli_GeoIcao_id   INTEGER,
         latitude        TEXT,
         longitude       TEXT,

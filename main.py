@@ -40,7 +40,7 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
             continue
 
         this = CIFPLine(a.rstrip().upper(), conn)
-        this.standard_inserts()
+        this.D_()
 
         print('Got through the loop once!')
         print(this.data)

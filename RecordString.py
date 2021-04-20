@@ -37,6 +37,50 @@
 
 # Naming convention: my functions are going to be prefaced with 'r'
 
+def _primary_matcher(_table_name):
+    # TODO: Error handling of unrecognized section/subsection pairs
+    # TODO: come pack to passed statements
+    # if _table_name == 'AS':
+    #     pass
+    if _table_name in ['D_', 'DB', 'PN']:  # VHF, NDB navaid, Apt Term NDB
+        return 'navaidIdent'
+    if _table_name in ['EA', 'ER', 'PC']:  # Enroute Waypoint, Apt Term WP
+        return 'waypointIdent'
+    # if _table_name == 'ER': # Enroute Airway/Route
+    #     pass
+    # if _table_name == 'HA': # Heliport reference point
+    #     pass
+    # if _table_name == 'HC': # Heliport terminal waypoint
+    #     pass
+    # if _table_name == 'HF': # Heliport approach procedure
+    #     pass
+    # if _table_name == 'HS': # Heliport MSA
+    #     pass
+    if _table_name in ['PA', 'PD', 'PE', 'PF', 'PG', 'PI',
+                       'PP']:  # Airport reference point
+        return 'airHeli_portIdent'
+    # if _table_name == 'PC': # Airport terminal waypoint
+    # pass
+    # if _table_name == 'PD': # Airport SID
+    #     pass
+    # if _table_name == 'PE': # Airport STAR
+    #     pass
+    # if _table_name == 'PF': # Airport Approach
+    #     pass
+    # if _table_name == 'PG': # Airport Runway
+    #     pass
+    # if _table_name == 'PI': # Airport Localizer/Glideslope
+    #     pass
+    # if _table_name == 'PP': # Airport SBAS Path Point
+    #     pass
+    # if _table_name == 'PS': # Airport MSA
+    #     pass
+    # if _table_name == 'UC': # Controlled airspace
+    #     pass
+    # if _table_name == 'UR': # Restrictive airspace
+    #     pass
+
+
 class CIFPLine:
     def __init__(self, data, connection):
         self.data = data
@@ -159,7 +203,7 @@ class CIFPLine:
     # def AS(self, connection):  # Grid MORA
     #     c = connection.cursor()
 
-    def standard_inserts(self):
+    def standard_inserts(self, _table_name, _primary_key):
         self.c.execute('SELECT id FROM AreaCode WHERE area = ?',
                        (self.areaCode,))
         areaCode_id = self.c.fetchone()[0]
@@ -167,12 +211,16 @@ class CIFPLine:
                           (section = ?) AND (subsec = ?)''',
                        (self.section, self.subsection,))
         sectionCode_id = self.c.fetchone()[0]
-        self.c.execute('INSERT INTO ? (file_rec) VALUES (?)',
-                       (self.table_name, self.fileRecord,))
-        self.c.execute('INSERT INTO ? (cycle_date) VALUES (?)',
-                       (self.table_name, self.fileCycle,))
+        self.c.execute('''INSERT INTO ? (file_rec) VALUES ? WHERE ? = ?''',
+                       (self.table_name, self.fileRecord,
+                        _primary_matcher(self.table_name), _primary_key))
+        self.c.execute('''INSERT INTO ? (cycle_date) VALUES ? WHERE ? = ?''',
+                       (self.table_name, self.fileCycle,
+                        _primary_matcher(self.table_name), _primary_key))
+        return areaCode_id, sectionCode_id
 
     def D_(self):  # VHF navaid
+        _areaCode_id, _sectionCode_id = CIFPLine.standard_inserts(self, self.table_name, 'navaidIdent')  # TODO fix this
         # TODO: Need INSERT OR IGNORE statements for all of these. Function?
         self.c.execute('SELECT id FROM navaidGeoIcao WHERE code = ?',
                        (self.navaidGeoIcao,))
@@ -222,15 +270,15 @@ class CIFPLine:
                                      file_rec,
                                      cycle_date) 
                            VALUES (?, ?, ?, ?, ?, ?, ?, ?,
-                                   ?, ?, ?, ?, ?, ?, ?, ?,
-                                   ?, ?)''',
-                       [(self.latitude,), (self.longitude,),
-                        (self.featureName,), (self.navaidIdent,),
-                        (self.DMElatitude,), (self.DMElongitude,),
-                        (navaidGeoIcao_id,), (airHeli_portIdent_id,),
-                        (airHeli_GeoIcao_id,), (navaidClass1_id,),
-                        (navaidClass2_id,), (navaidClass3_id,),
-                        (navaidClass4_id,), (navaidClass5_id,)])
+                                   ?, ?, ?, ?, ?, ?, ?, ?)''',
+                       (self.latitude, self.longitude,
+                        self.featureName, self.navaidIdent,
+                        self.DMElatitude, self.DMElongitude,
+                        navaidGeoIcao_id, airHeli_portIdent_id,
+                        airHeli_GeoIcao_id, navaidClass1_id,
+                        navaidClass2_id, navaidClass3_id,
+                        navaidClass4_id, navaidClass5_id,
+                        DMEident_id, _areaCode_id, _sectionCode_id))
 
     def DB(self):  # NDB navaid
         pass
