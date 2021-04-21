@@ -33,10 +33,6 @@
 """
 
 
-# 'l' is the line of the CIFP we're looking at.
-
-# Naming convention: my functions are going to be prefaced with 'r'
-
 def _primary_matcher(_table_name):
     # TODO: Error handling of unrecognized section/subsection pairs
     # TODO: come pack to passed statements
@@ -81,7 +77,15 @@ def _primary_matcher(_table_name):
     #     pass
 
 
+def _insert_Icao(newcode, cursor):
+    cursor.execute('''INSERT INTO IcaoCode (code) VALUES (?)''',
+                   (newcode,))
+    pass
+
+
 class CIFPLine:
+    IcaoCodes = []
+
     def __init__(self, data, connection):
         self.data = data
         self.connection = connection
@@ -107,6 +111,9 @@ class CIFPLine:
                                'PP', 'PS', 'HS']:
             self.airHeli_portIdent = self.data[6:10]
             self.airHeli_GeoIcao = self.data[10:12]
+            if self.airHeli_GeoIcao not in self.IcaoCodes:
+                self.IcaoCodes.append(self.airHeli_GeoIcao)
+                _insert_Icao(self.airHeli_GeoIcao, self.c)
 
         if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC',
                                'PG', 'PI', 'UR', 'UC']:
@@ -131,6 +138,9 @@ class CIFPLine:
                 self.DMEident = self.data[51:55]
                 self.DMElatitude = self.data[55:64]
                 self.DMElongitude = self.data[64:74]
+            if self.navaidGeoIcao not in self.IcaoCodes:
+                self.IcaoCodes.append(self.navaidGeoIcao)
+                _insert_Icao(self.navaidGeoIcao, self.c)
 
         if self.table_name in ['PA', 'HA']:
             self.IATAcode = self.data[13:16]
@@ -149,6 +159,9 @@ class CIFPLine:
                 self.longRunwaySurface = self.data[31]
             else:
                 self.heliportType = self.data[31]
+            if self.recommendedNavaidGeoIcao not in self.IcaoCodes:
+                self.IcaoCodes.append(self.recommendedNavaidGeoIcao)
+                _insert_Icao(self.recommendedNavaidGeoIcao, self.c)
 
         if self.table_name in ['ER', 'PD', 'PE', 'PF', 'HD', 'HE', 'HF']:
             self.fixIdent = self.data[29:34]
@@ -172,6 +185,12 @@ class CIFPLine:
             else:
                 self.routeIdent = self.data[13:18]
                 self.sequenceNumber = self.data[25:29]
+            if self.fixIcao not in self.IcaoCodes:
+                self.IcaoCodes.append(self.fixIcao)
+                _insert_Icao(self.fixIcao, self.c)
+            if self.recommendedNavaidGeoIcao not in self.IcaoCodes:
+                self.IcaoCodes.append(self.recommendedNavaidGeoIcao)
+                _insert_Icao(self.recommendedNavaidGeoIcao, self.c)
 
         if self.table_name in ['EA', 'PC', 'HC']:
             self.waypointIdent = self.data[13:18]
@@ -180,6 +199,9 @@ class CIFPLine:
             self.waypointType2 = self.data[27]
             self.waypointType3 = self.data[28]
             self.waypointusage = self.data[30]
+            if self.waypointIcao not in self.IcaoCodes:
+                self.IcaoCodes.append(self.waypointIcao)
+                _insert_Icao(self.waypointIcao, self.c)
 
         if self.table_name == 'PG':
             self.runwayIdent = self.data[13:18]
@@ -188,7 +210,7 @@ class CIFPLine:
             self.runwayGradient = self.data[51:56]
             self.landingThresholdElev = self.data[66:71]
             self.displacedTresholdLength = self.data[71:75]
-            self.runwayWidth = self.data[7780]
+            self.runwayWidth = self.data[77:80]
             self.TCHvalueIndicator = self.data[80]
             self.stopwayLength = self.data[86:90]
             self.thresholdCrossingHeight = self.data[95:98]
@@ -200,29 +222,24 @@ class CIFPLine:
             self.localizerFreq = self.data[22:27]
             self.runwayIdent = self.data[27:32]
 
+        self.connection.commit()
+
     # def AS(self, connection):  # Grid MORA
     #     c = connection.cursor()
 
     def standard_inserts(self, _table_name, _primary_key):
-        self.c.execute('SELECT id FROM AreaCode WHERE area = ?',
-                       (self.areaCode,))
-        areaCode_id = self.c.fetchone()[0]
-        self.c.execute('''SELECT rowid FROM SecCode WHERE
-                          (section = ?) AND (subsec = ?)''',
-                       (self.section, self.subsection,))
-        sectionCode_id = self.c.fetchone()[0]
         self.c.execute('''INSERT INTO ? (file_rec) VALUES ? WHERE ? = ?''',
                        (self.table_name, self.fileRecord,
                         _primary_matcher(self.table_name), _primary_key))
         self.c.execute('''INSERT INTO ? (cycle_date) VALUES ? WHERE ? = ?''',
                        (self.table_name, self.fileCycle,
                         _primary_matcher(self.table_name), _primary_key))
-        return areaCode_id, sectionCode_id
+        pass
 
     def D_(self):  # VHF navaid
-        _areaCode_id, _sectionCode_id = CIFPLine.standard_inserts(self, self.table_name, 'navaidIdent')  # TODO fix this
+        # _areaCode_id, _sectionCode_id = CIFPLine.standard_inserts(self, self.table_name, 'navaidIdent')  # TODO fix this
         # TODO: Need INSERT OR IGNORE statements for all of these. Function?
-        self.c.execute('SELECT id FROM navaidGeoIcao WHERE code = ?',
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.navaidGeoIcao,))
         navaidGeoIcao_id = self.c.fetchone()[0]
         self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
@@ -249,16 +266,24 @@ class CIFPLine:
         self.c.execute('SELECT id FROM DMEident WHERE name = ?',
                        (self.DMEident,))
         DMEident_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM AreaCode WHERE area = ?',
+                       (self.areaCode,))
+        areaCode_id = self.c.fetchone()[0]
+        self.c.execute('''SELECT rowid FROM SecCode WHERE
+                          (section = ?) AND (subsec = ?)''',
+                       (self.section, self.subsection,))
+        sectionCode_id = self.c.fetchone()[0]
         self.c.execute('''INSERT OR IGNORE INTO D_ (
+                                     navaidIdent,
                                      latitude,
                                      longitude,
                                      featureName,
-                                     navaidIdent,
                                      DMElatitude,
                                      DMElongitude,
                                      navaidGeoIcao_id,
                                      airHeli_portIdent_id,
                                      airHeli_GeoIcao_id,
+                                     navaidFrequency,
                                      navaidClass1_id,
                                      navaidClass2_id,
                                      navaidClass3_id,
@@ -266,19 +291,20 @@ class CIFPLine:
                                      navaidClass5_id,
                                      DMEident_id,
                                      areaCode_id,
-                                     sectionCode_id,
+                                     sectionCode_id
                                      file_rec,
-                                     cycle_date) 
+                                     cycle,date)
                            VALUES (?, ?, ?, ?, ?, ?, ?, ?,
-                                   ?, ?, ?, ?, ?, ?, ?, ?)''',
-                       (self.latitude, self.longitude,
-                        self.featureName, self.navaidIdent,
-                        self.DMElatitude, self.DMElongitude,
+                                   ?, ?, ?, ?, ?, ?, ?, ?,
+                                   ?, ?, ?, ?)''',
+                       (self.navaidIdent, self.latitude, self.longitude,
+                        self.featureName, self.DMElatitude, self.DMElongitude,
                         navaidGeoIcao_id, airHeli_portIdent_id,
-                        airHeli_GeoIcao_id, navaidClass1_id,
-                        navaidClass2_id, navaidClass3_id,
-                        navaidClass4_id, navaidClass5_id,
-                        DMEident_id, _areaCode_id, _sectionCode_id))
+                        airHeli_GeoIcao_id, self.navaidFrequency,
+                        navaidClass1_id, navaidClass2_id, navaidClass3_id,
+                        navaidClass4_id, navaidClass5_id, DMEident_id,
+                        areaCode_id, sectionCode_id, self.fileRecord,
+                        self.fileCycle))
 
     def DB(self):  # NDB navaid
         pass
@@ -323,6 +349,7 @@ class CIFPLine:
         pass
 
     def PN(self, connection):  # Airport Terminal NDB
+        # Just send them to the DB table!
         pass
 
     def PP(self, connection):  # Airport SBAS Path Point

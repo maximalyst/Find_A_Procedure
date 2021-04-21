@@ -91,27 +91,27 @@ def table_define(connection):
         cycle_date      INTEGER
     );
     --Terminal NDB navaids--copy above table fields
-    CREATE TABLE PN (
-        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        navaidIdent TEXT UNIQUE,
-        navaidGeoIcao_id INTEGER,
-        airHeli_portIdent_id INTEGER,
-        airHeli_GeoIcao_id INTEGER,
-        latitude    TEXT,
-        longitude   TEXT,
-        featureName TEXT,
-        navaidFrequency INTEGER,
-        navaidClass1_id INTEGER,
-        navaidClass2_id INTEGER,
-        navaidClass3_id INTEGER,
-        navaidClass4_id INTEGER,
-        navaidClass5_id INTEGER,
-        areaCode_id INTEGER,
-        sectionCode_id INTEGER,
-        --subsectionCode_id INTEGER,
-        file_rec        INTEGER,
-        cycle_date      INTEGER
-    );
+    --CREATE TABLE PN (
+    --    id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
+    --    navaidIdent TEXT UNIQUE,
+    --    navaidGeoIcao_id INTEGER,
+    --    airHeli_portIdent_id INTEGER,
+    --    airHeli_GeoIcao_id INTEGER,
+    --    latitude    TEXT,
+    --    longitude   TEXT,
+    --    featureName TEXT,
+    --    navaidFrequency INTEGER,
+    --    navaidClass1_id INTEGER,
+    --    navaidClass2_id INTEGER,
+    --    navaidClass3_id INTEGER,
+    --    navaidClass4_id INTEGER,
+    --    navaidClass5_id INTEGER,
+    --    areaCode_id INTEGER,
+    --    sectionCode_id INTEGER,
+    --    --subsectionCode_id INTEGER,
+    --    file_rec        INTEGER,
+    --    cycle_date      INTEGER
+    --);
     --enroute waypoints
     CREATE TABLE EA (
         id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
@@ -398,6 +398,10 @@ def table_define(connection):
     ''')
     c.executescript('''
     --The following are consistent items in many entries:
+    CREATE TABLE IcaoCode (--2 letter codes
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
+        code    TEXT UNIQUE
+    );
     CREATE TABLE AreaCode (
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         area    TEXT UNIQUE
