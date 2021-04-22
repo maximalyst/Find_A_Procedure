@@ -105,6 +105,11 @@ class CIFPLine:
             self.subsection = self.data[12]
 
         self.table_name = self.section + self.subsection
+        # Simplifying equivalencies:
+        if self.table_name == 'PC':
+            self.table_name = 'EA'
+        elif self.table_name == 'PN':
+            self.table_name = 'DB'
 
         if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC',
                                'PD', 'PE', 'PF', 'HD', 'HE', 'HF', 'PG', 'PI',
@@ -225,7 +230,7 @@ class CIFPLine:
         if self.table_name in ['D_', 'DB', 'PN']:
             self.hinge = 'navaidIdent'
             self.hingeValue = self.navaidIdent
-        if self.table_name in ['EA']:
+        if self.table_name in ['EA', 'PC']:
             self.hinge = 'waypointIdent'
             self.hingeValue = self.waypointIdent
         if self.table_name in ['ER']:
@@ -237,12 +242,21 @@ class CIFPLine:
         if self.table_name in ['PD', 'PE', 'PF']:
             self.hinge = 'SidStarApproachIdent'
             self.hingeValue = self.SidStarApproachIdent
+        if self.table_name in ['PI']:
+            self.hinge = 'localizerIdent'
+            self.hingeValue = self.localizerIdent
+        # TODO: Figure out runway (PG) situation?
 
         self.connection.commit()
 
     def already_exists(self):
-        self.c.execute('''SELECT id FROM ? WHERE ? = ?''',
-                       (self.table_name, self.hinge, self.hingeValue))
+        print('''SELECT id FROM''', self.table_name, '''WHERE''', self.hinge,'''=''', self.hingeValue)
+        if self.c.execute('SELECT id FROM ? WHERE ? = ?',
+                          (self.table_name, self.hinge,
+                           self.hingeValue)) is not None:
+            return True
+        else:
+            return False
 
     def standard_inserts(self, _table_name, _primary_key):
         self.c.execute('''INSERT INTO ? (file_rec) VALUES ? WHERE ? = ?''',

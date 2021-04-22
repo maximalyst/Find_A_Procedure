@@ -26,7 +26,6 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
     lastspot = fh.tell()  # This "saves" our current position in file stream
     this = fh.readline().rstrip().upper()
     while this[0:3] == 'HDR':
-        print(this[0:5])
         lastspot = fh.tell()  # we're still in a header line, so update "save"
         this = fh.readline().rstrip().upper()
 
@@ -44,10 +43,9 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
             continue
 
         this = CIFPLine(rawdata, conn)
-        this.alreadyexists()
+        print(this.already_exists())
 
         print('Got through the loop once!')
-        print(this.data)
         break
         # if k == 10:
         #     conn.commit()
