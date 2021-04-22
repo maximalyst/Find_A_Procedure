@@ -1,5 +1,7 @@
 from string import ascii_uppercase  # needed for A-Z string shortcut
 
+# TODO: Add Helicopter things (none in MVP version of script)
+
 
 def table_define(connection):
     # Constants, for cleanliness
@@ -135,7 +137,7 @@ def table_define(connection):
     --enroute airways
     CREATE TABLE ER (
         id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        routeIdent_id  INTEGER,
+        routeIdent     TEXT UNIQUE,
         sequenceNumber INTEGER,
         fixIdent_id    INTEGER,
         fixIcao_id     INTEGER,
@@ -156,7 +158,7 @@ def table_define(connection):
     --airport ref points
     CREATE TABLE PA (
         id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        airHeli_portIdent TEXT UNIQUE,
+        airHeli_portIdent    TEXT UNIQUE,
         airHeli_GeoIcao_id   INTEGER,
         latitude        TEXT,
         longitude       TEXT,
@@ -178,26 +180,26 @@ def table_define(connection):
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
-    --Airport terminal waypoints
-    CREATE TABLE PC (
-        id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        airHeli_portIdent_id INTEGER,
-        airHeli_GeoIcao_id INTEGER,
-        latitude        TEXT,
-        longitude       TEXT,
-        featureName     TEXT,
-        waypointIdent_id INTEGER,
-        waypointIcao_id  INTEGER,
-        waypointType1_id INTEGER,
-        waypointType2_id INTEGER,
-        waypointType3_id INTEGER,
-        waypointUsage_id INTEGER,
-        areaCode_id     INTEGER,
-        sectionCode_id  INTEGER,
-        --subsectionCode_id INTEGER,
-        file_rec        INTEGER,
-        cycle_date      INTEGER
-    );
+    --Airport terminal waypoints -- these are the same as EA
+    --CREATE TABLE PC (
+    --    id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
+    --    airHeli_portIdent_id INTEGER,
+    --    airHeli_GeoIcao_id INTEGER,
+    --    latitude        TEXT,
+    --    longitude       TEXT,
+    --    featureName     TEXT,
+    --    waypointIdent_id INTEGER,
+    --    waypointIcao_id  INTEGER,
+    --    waypointType1_id INTEGER,
+    --    waypointType2_id INTEGER,
+    --    waypointType3_id INTEGER,
+    --    waypointUsage_id INTEGER,
+    --    areaCode_id     INTEGER,
+    --    sectionCode_id  INTEGER,
+    --    --subsectionCode_id INTEGER,
+    --    file_rec        INTEGER,
+    --    cycle_date      INTEGER
+    --);
     --SIDs
     CREATE TABLE PD (
         id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
@@ -210,7 +212,7 @@ def table_define(connection):
         descriptionCode_id   INTEGER,
         recommendedNavaid_id INTEGER,
         recommendedNavaidGeoIcao_id INTEGER,
-        SidStarApproachIdent  TEXT,
+        SidStarApproachIdent  TEXT UNIQUE,
         routeTypeSID_id          INTEGER,
         transitionIdent_id    INTEGER,
         aircraftDesignType_id INTEGER,
@@ -238,7 +240,7 @@ def table_define(connection):
         descriptionCode_id   INTEGER,
         recommendedNavaid_id INTEGER,
         recommendedNavaidGeoIcao_id INTEGER,
-        SidStarApproachIdent  TEXT,
+        SidStarApproachIdent  TEXT UNIQUE,
         routeTypeSTAR         INTEGER,--1,2,or 3; so we do it direct
         transitionIdent_id    INTEGER,
         aircraftDesignType_id INTEGER,
@@ -266,7 +268,7 @@ def table_define(connection):
         descriptionCode_id   INTEGER,
         recommendedNavaid_id INTEGER,
         recommendedNavaidGeoIcao_id INTEGER,
-        SidStarApproachIdent  TEXT,
+        SidStarApproachIdent  TEXT UNIQUE,
         routeTypeApproach_id     INTEGER,
         transitionIdent_id    INTEGER,
         aircraftDesignType_id INTEGER,
@@ -323,7 +325,7 @@ def table_define(connection):
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
-    --Airport SBAS Path Points
+    --Airport SBAS Path Points (WAAS)
     CREATE TABLE PP (
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         airHeli_portIdent_id INTEGER,

@@ -3,6 +3,9 @@ import os
 import DatabaseSetup
 from RecordString import CIFPLine
 
+ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
+                      'PA', 'PD', 'PE', 'PF', 'PG', 'PI']
+
 if os.path.exists('CIFP_parse.sqlite'):
     os.remove('CIFP_parse.sqlite')
 
@@ -16,7 +19,7 @@ cursr = conn.cursor()
 DatabaseSetup.table_define(conn)
 
 #############################
-k = 0 # counter for commits
+k = 0  # counter for commits
 
 with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
     # Get the header info first...
@@ -24,7 +27,7 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
     this = fh.readline().rstrip().upper()
     while this[0:3] == 'HDR':
         print(this[0:5])
-        lastspot=fh.tell()  # we're still in a header line, so update "save"
+        lastspot = fh.tell()  # we're still in a header line, so update "save"
         this = fh.readline().rstrip().upper()
 
     # we need to skip back to the first line after the last header line,
@@ -35,12 +38,13 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
     # now for the part we're all here for
     for a in fh:
         k += 1
-        # Skip all grid MORA for this version
-        if a.rstrip().upper()[4:6] == 'AS':
+        rawdata = a.rstrip().upper()
+        # In this version we're only dealing with certain datatypes
+        if rawdata[4:6] not in ALLOWED_DATA_LINES:
             continue
 
-        this = CIFPLine(a.rstrip().upper(), conn)
-        this.D_()
+        this = CIFPLine(rawdata, conn)
+        this.alreadyexists()
 
         print('Got through the loop once!')
         print(this.data)

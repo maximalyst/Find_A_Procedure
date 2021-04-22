@@ -222,10 +222,27 @@ class CIFPLine:
             self.localizerFreq = self.data[22:27]
             self.runwayIdent = self.data[27:32]
 
+        if self.table_name in ['D_', 'DB', 'PN']:
+            self.hinge = 'navaidIdent'
+            self.hingeValue = self.navaidIdent
+        if self.table_name in ['EA']:
+            self.hinge = 'waypointIdent'
+            self.hingeValue = self.waypointIdent
+        if self.table_name in ['ER']:
+            self.hinge = 'routeIdent'
+            self.hingeValue = self.routeIdent
+        if self.table_name in ['PA']:
+            self.hinge = 'airHeli_portIdent'
+            self.hingeValue = self.airHeli_portIdent
+        if self.table_name in ['PD', 'PE', 'PF']:
+            self.hinge = 'SidStarApproachIdent'
+            self.hingeValue = self.SidStarApproachIdent
+
         self.connection.commit()
 
-    # def AS(self, connection):  # Grid MORA
-    #     c = connection.cursor()
+    def already_exists(self):
+        self.c.execute('''SELECT id FROM ? WHERE ? = ?''',
+                       (self.table_name, self.hinge, self.hingeValue))
 
     def standard_inserts(self, _table_name, _primary_key):
         self.c.execute('''INSERT INTO ? (file_rec) VALUES ? WHERE ? = ?''',
