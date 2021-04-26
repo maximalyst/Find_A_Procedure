@@ -3,6 +3,7 @@ import os
 import DatabaseSetup
 from RecordString import CIFPLine
 
+# Temporary things I'm only allowing for MVP version
 ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
                       'PA', 'PD', 'PE', 'PF', 'PG', 'PI']
 
@@ -11,10 +12,6 @@ if os.path.exists('CIFP_parse.sqlite'):
 
 conn = sqlite3.connect('CIFP_parse.sqlite')
 cursr = conn.cursor()
-
-# Versions:
-# 0.1, 0.2 and 0.3 just got basic syntax errors ironed out, and tweaks
-# 0.4 is splitting out the setup and parsing into different files
 
 DatabaseSetup.table_define(conn)
 
@@ -43,12 +40,14 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
             continue
 
         this = CIFPLine(rawdata, conn)
-        print(this.already_exists())
+        if this.already_exists() == True:
+            # log it
+            continue
 
-        print('Got through the loop once!')
         break
-        # if k == 10:
-        #     conn.commit()
-        #     k = 0
+        if k == 10:
+            conn.commit()
+            k = 0
+            break # debug
 
 conn.close()

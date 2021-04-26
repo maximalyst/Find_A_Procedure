@@ -560,7 +560,7 @@ def table_define(connection):
     --    id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
     --    type    TEXT UNIQUE
     --);
-''')
+    ''')
 
     c.executemany('''INSERT INTO AreaCode (area) VALUES (?);''',
                   KNOWN_AREACODES)

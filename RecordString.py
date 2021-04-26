@@ -14,26 +14,29 @@
 #         else: self.subsection = line[12]
 #
 #
-""" Flow through each loop of CFIP data:
-    Read line
-    Remove trailing \n and force upper case
-    ^^^ Did the above in the loop itself
+# Flow through each loop of CFIP data:
+#    Read line
+#    Remove trailing \n and force upper case
+#    ^^^ Did the above in the loop itself
+#
+#    Set "standard" features--line[0],]1:4],[123:128],[128:]
+#    Set section--line[4]
+#    Determine if it's section P/H or not
+#        If it is, get subsection -- line[12]
+#        If it isn't, get subsection -- line[5]
+#
+#    Depending on section/subsection, input data into database
+#        Get "standard" features from each section--line[xx:yy]
+#        Input repeated data (ex. airport abbrevs) into ID tables
+#        Reference ID tables into line's database entry
+#        Input unique data (ex. lat/long) into line's database entry
 
-    Set "standard" features--line[0],]1:4],[123:128],[128:]
-    Set section--line[4]
-    Determine if it's section P/H or not
-        If it is, get subsection -- line[12]
-        If it isn't, get subsection -- line[5]
 
-    Depending on section/subsection, input data into database
-        Get "standard" features from each section--line[xx:yy]
-        Input repeated data (ex. airport abbrevs) into ID tables
-        Reference ID tables into line's database entry
-        Input unique data (ex. lat/long) into line's database entry
-"""
+from string import Template
 
 
 def _primary_matcher(_table_name):
+    """"""
     # TODO: Error handling of unrecognized section/subsection pairs
     # TODO: come pack to passed statements
     # if _table_name == 'AS':
@@ -250,10 +253,11 @@ class CIFPLine:
         self.connection.commit()
 
     def already_exists(self):
-        print('''SELECT id FROM''', self.table_name, '''WHERE''', self.hinge,'''=''', self.hingeValue)
-        if self.c.execute('SELECT id FROM ? WHERE ? = ?',
-                          (self.table_name, self.hinge,
-                           self.hingeValue)) is not None:
+        self.c.execute(Template('''SELECT id FROM $table WHERE $hinge = '''
+                                "'$hingevalue'")
+                       .substitute(table=self.table_name, hinge=self.hinge,
+                                   hingevalue=self.hingeValue))
+        if self.c.fetchone() is not None:
             return True
         else:
             return False
@@ -270,6 +274,7 @@ class CIFPLine:
     def D_(self):  # VHF navaid
         # _areaCode_id, _sectionCode_id = CIFPLine.standard_inserts(self, self.table_name, 'navaidIdent')  # TODO fix this
         # TODO: Need INSERT OR IGNORE statements for all of these. Function?
+        print('Hello!')
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.navaidGeoIcao,))
         navaidGeoIcao_id = self.c.fetchone()[0]
