@@ -51,6 +51,7 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
                             this.hingeValue, this.table_name)
             continue
         # Now handle the line since it's "new"
+        # this.record_line()
 
 
         break

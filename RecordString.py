@@ -260,6 +260,48 @@ class CIFPLine:
         else:
             return False
 
+    def record_line(self):
+        if self.hinge == 'D_':
+            self.D_()
+        if self.hinge == 'DB':
+            self.DB()
+        if self.hinge == 'EA':
+            self.EA()
+        if self.hinge == 'ER':
+            self.ER()
+        if self.hinge == 'HA':
+            self.HA()
+        if self.hinge == 'HC':
+            self.HC()
+        if self.hinge == 'HF':
+            self.HF()
+        if self.hinge == 'HS':
+            self.HS()
+        if self.hinge == 'PA':
+            self.PA()
+        if self.hinge == 'PC':
+            self.PC()
+        if self.hinge == 'PD':
+            self.PD()
+        if self.hinge == 'PE':
+            self.PE()
+        if self.hinge == 'PF':
+            self.PF()
+        if self.hinge == 'PG':
+            self.PG()
+        if self.hinge == 'PI':
+            self.PI()
+        if self.hinge == 'PN':
+            self.PN()
+        if self.hinge == 'PP':
+            self.PP()
+        if self.hinge == 'PS':
+            self.PS()
+        if self.hinge == 'UC':
+            self.UC()
+        if self.hinge == 'UR':
+            self.UR()
+
     def standard_inserts(self, _table_name, _primary_key):
         self.c.execute('''INSERT INTO ? (file_rec) VALUES ? WHERE ? = ?''',
                        (self.table_name, self.fileRecord,
