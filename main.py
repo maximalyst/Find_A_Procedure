@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import DatabaseSetup
+import logging
 from RecordString import CIFPLine
 
 # Temporary things I'm only allowing for MVP version
@@ -9,6 +10,9 @@ ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
 
 if os.path.exists('CIFP_parse.sqlite'):
     os.remove('CIFP_parse.sqlite')
+
+logging.basicConfig(filename='parse_log.log', encoding='utf-8',
+                    level=logging.DEBUG, filemode='w')
 
 conn = sqlite3.connect('CIFP_parse.sqlite')
 cursr = conn.cursor()
@@ -40,9 +44,14 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
             continue
 
         this = CIFPLine(rawdata, conn)
-        if this.already_exists() == True:
-            # log it
+        print(rawdata)
+        if this.already_exists() is True:
+            logging.warning('%s', rawdata)
+            logging.warning('%s already exists in database table %s\n',
+                            this.hingeValue, this.table_name)
             continue
+        # Now handle the line since it's "new"
+
 
         break
         if k == 10:

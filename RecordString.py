@@ -87,7 +87,7 @@ def _insert_Icao(newcode, cursor):
 
 
 class CIFPLine:
-    IcaoCodes = []
+    IcaoCodes = []  # Yup, we're appending for the whole class, not unique
 
     def __init__(self, data, connection):
         self.data = data
@@ -249,8 +249,6 @@ class CIFPLine:
             self.hinge = 'localizerIdent'
             self.hingeValue = self.localizerIdent
         # TODO: Figure out runway (PG) situation?
-
-        self.connection.commit()
 
     def already_exists(self):
         self.c.execute(Template('''SELECT id FROM $table WHERE $hinge = '''
