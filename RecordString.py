@@ -81,8 +81,10 @@ def _primary_matcher(_table_name):
 
 
 def _insert_Icao(newcode, cursor):
-    cursor.execute('''INSERT INTO IcaoCode (code) VALUES (?)''',
-                   (newcode,))
+    # cursor.execute('''INSERT INTO IcaoCode (code) VALUES (?)''',
+    #                (newcode,))
+    # TODO: Delete this and implementation of insertion in __init__
+    #  (old procedure)
     pass
 
 
@@ -242,7 +244,7 @@ class CIFPLine:
         if self.table_name in ['PA']:
             self.hinge = 'airHeli_portIdent'
             self.hingeValue = self.airHeli_portIdent
-        if self.table_name in ['PD', 'PE', 'PF']:
+        if self.table_name in ['PD', 'PE', 'PF', 'HD', 'HE', 'HF']: #  heliports aren't in MVP, but this is where SID/STAR/Appch will go eventually
             self.hinge = 'SidStarApproachIdent'
             self.hingeValue = self.SidStarApproachIdent
         if self.table_name in ['PI']:
@@ -261,46 +263,18 @@ class CIFPLine:
             return False
 
     def record_line(self):
-        if self.hinge == 'D_':
-            self.D_()
-        if self.hinge == 'DB':
-            self.DB()
-        if self.hinge == 'EA':
-            self.EA()
-        if self.hinge == 'ER':
-            self.ER()
-        if self.hinge == 'HA':
-            self.HA()
-        if self.hinge == 'HC':
-            self.HC()
-        if self.hinge == 'HF':
-            self.HF()
-        if self.hinge == 'HS':
-            self.HS()
-        if self.hinge == 'PA':
-            self.PA()
-        if self.hinge == 'PC':
-            self.PC()
-        if self.hinge == 'PD':
-            self.PD()
-        if self.hinge == 'PE':
-            self.PE()
-        if self.hinge == 'PF':
-            self.PF()
-        if self.hinge == 'PG':
-            self.PG()
-        if self.hinge == 'PI':
-            self.PI()
-        if self.hinge == 'PN':
-            self.PN()
-        if self.hinge == 'PP':
-            self.PP()
-        if self.hinge == 'PS':
-            self.PS()
-        if self.hinge == 'UC':
-            self.UC()
-        if self.hinge == 'UR':
-            self.UR()
+        if self.hinge == 'navaidIdent':
+            self.navaidIdent_line()
+        if self.hinge == 'waypointIdent':
+            self.waypointIdent_line()
+        if self.hinge == 'routeIdent':
+            self.routeIdent_line()
+        if self.hinge == 'airHeli_portIdent':
+            self.airHeli_portIdent_line()
+        if self.hinge == 'SidStarApproachIdent':
+            self.SidStarApproachIdent_line()
+        if self.hinge == 'localizerIdent':
+            self.localizerIdent_line()
 
     def standard_inserts(self, _table_name, _primary_key):
         self.c.execute('''INSERT INTO ? (file_rec) VALUES ? WHERE ? = ?''',
@@ -311,10 +285,10 @@ class CIFPLine:
                         _primary_matcher(self.table_name), _primary_key))
         pass
 
-    def D_(self):  # VHF navaid
+    def navaidIdent_line(self):  # D_, DB, and PN lines
         # _areaCode_id, _sectionCode_id = CIFPLine.standard_inserts(self, self.table_name, 'navaidIdent')  # TODO fix this
         # TODO: Need INSERT OR IGNORE statements for all of these. Function?
-        print('Hello!')
+        print('Hello navaids!!')
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.navaidGeoIcao,))
         navaidGeoIcao_id = self.c.fetchone()[0]

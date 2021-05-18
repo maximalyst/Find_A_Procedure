@@ -44,14 +44,14 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
             continue
 
         this = CIFPLine(rawdata, conn)
-        print(rawdata)
+        print(rawdata)  # DEBUG
         if this.already_exists() is True:
             logging.warning('%s', rawdata)
             logging.warning('%s already exists in database table %s\n',
                             this.hingeValue, this.table_name)
             continue
         # Now handle the line since it's "new"
-        # this.record_line()
+        # this.record_line() #  come back to this line once record_line() fleshed out.
 
 
         break
