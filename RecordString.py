@@ -84,7 +84,7 @@ def _insert_Icao(newcode, cursor):
     # cursor.execute('''INSERT INTO IcaoCode (code) VALUES (?)''',
     #                (newcode,))
     # TODO: Delete this and implementation of insertion in __init__
-    #  (old procedure)
+    #  (old procedure). Ctrl+F "not in self.IcaoCodes" and delete
     pass
 
 
@@ -125,6 +125,9 @@ class CIFPLine:
                 self.IcaoCodes.append(self.airHeli_GeoIcao)
                 _insert_Icao(self.airHeli_GeoIcao, self.c)
 
+            self.c.execute('INSERT OR IGNORE INTO PA (airHeli_portIdent) VALUES (?);',
+                           (self.airHeli_portIdent, ))
+
         if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC',
                                'PG', 'PI', 'UR', 'UC']:
             self.latitude = self.data[32:41]
@@ -145,12 +148,18 @@ class CIFPLine:
             self.navaidFrequency = self.data[22:27]
             self.navaidClass = self.data[27:32]
             if self.table_name == 'D_':
-                self.DMEident = self.data[51:55]
+                if self.data[51:55] == '    ':
+                    self.DMEident = self.navaidIdent
+                else:
+                    self.DMEident = self.data[51:55]
                 self.DMElatitude = self.data[55:64]
                 self.DMElongitude = self.data[64:74]
             if self.navaidGeoIcao not in self.IcaoCodes:
                 self.IcaoCodes.append(self.navaidGeoIcao)
                 _insert_Icao(self.navaidGeoIcao, self.c)
+
+            self.c.execute('INSERT OR IGNORE INTO DMEident (name) VALUES (?);',
+                           (self.DMEident, ))
 
         if self.table_name in ['PA', 'HA']:
             self.IATAcode = self.data[13:16]
@@ -252,6 +261,8 @@ class CIFPLine:
             self.hingeValue = self.localizerIdent
         # TODO: Figure out runway (PG) situation?
 
+        self.connection.commit()
+
     def already_exists(self):
         self.c.execute(Template('''SELECT id FROM $table WHERE $hinge = '''
                                 "'$hingevalue'")
@@ -288,14 +299,12 @@ class CIFPLine:
     def navaidIdent_line(self):  # D_, DB, and PN lines
         # _areaCode_id, _sectionCode_id = CIFPLine.standard_inserts(self, self.table_name, 'navaidIdent')  # TODO fix this
         # TODO: Need INSERT OR IGNORE statements for all of these. Function?
-        print('Hello navaids!!')
+        print('Hello navaids!!')  # DEBUG
+        print(self.DMEident)
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.navaidGeoIcao,))
         navaidGeoIcao_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
-                       (self.airHeli_portIdent,))
-        airHeli_portIdent_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM GeoIcao WHERE code = ?',
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.airHeli_GeoIcao,))
         airHeli_GeoIcao_id = self.c.fetchone()[0]
         self.c.execute('SELECT id FROM NAVAIDclass1 WHERE class = ?',
@@ -313,9 +322,6 @@ class CIFPLine:
         self.c.execute('SELECT id FROM NAVAIDclass5 WHERE class = ?',
                        (self.navaidClass[4],))
         navaidClass5_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM DMEident WHERE name = ?',
-                       (self.DMEident,))
-        DMEident_id = self.c.fetchone()[0]
         self.c.execute('SELECT id FROM AreaCode WHERE area = ?',
                        (self.areaCode,))
         areaCode_id = self.c.fetchone()[0]
@@ -323,6 +329,13 @@ class CIFPLine:
                           (section = ?) AND (subsec = ?)''',
                        (self.section, self.subsection,))
         sectionCode_id = self.c.fetchone()[0]
+        # TODO: dynamic insert of PA and DMEidents...
+        self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
+                       (self.airHeli_portIdent,))
+        airHeli_portIdent_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM DMEident WHERE name = ?',
+                       (self.DMEident,))
+        DMEident_id = self.c.fetchone()[0]
         self.c.execute('''INSERT OR IGNORE INTO D_ (
                                      navaidIdent,
                                      latitude,
@@ -341,9 +354,9 @@ class CIFPLine:
                                      navaidClass5_id,
                                      DMEident_id,
                                      areaCode_id,
-                                     sectionCode_id
+                                     sectionCode_id,
                                      file_rec,
-                                     cycle,date)
+                                     cycle_date)
                            VALUES (?, ?, ?, ?, ?, ?, ?, ?,
                                    ?, ?, ?, ?, ?, ?, ?, ?,
                                    ?, ?, ?, ?)''',
@@ -355,61 +368,24 @@ class CIFPLine:
                         navaidClass4_id, navaidClass5_id, DMEident_id,
                         areaCode_id, sectionCode_id, self.fileRecord,
                         self.fileCycle))
+        # self.connection.commit() # I think we want to commit now so we can add DME items if D_ line? Uncomment if error
+        if self.table_name == 'D_':
+            # TODO: remove DME info from above and put it here
+            pass
 
-    def DB(self):  # NDB navaid
+
+    def waypointIdent_line(self):  # EA, PC lines
         pass
 
-    def EA(self, connection):  # Enroute Waypoint
+    def routeIdent_line(self, connection):  # ER lines
         pass
 
-    def ER(self, connection):  # Enroute Airway/Route
+    def airHeli_portIdent_line(self, connection):  # PA and HA lines
         pass
 
-    def HA(self, connection):  # Heliport reference point
+    def SidStarApproachIdent_line(self, connection):  # PD, PE, PF (and H_) lines
         pass
 
-    def HC(self, connection):  # Heliport terminal waypoint
+    def localizerIdent_line(self, connection):  # PI lines
         pass
 
-    def HF(self, connection):  # Heliport approach procedure
-        pass
-
-    def HS(self, connection):  # Heliport MSA
-        pass
-
-    def PA(self, connection):  # Airport reference point
-        pass
-
-    def PC(self, connection):  # Airport terminal waypoint
-        pass
-
-    def PD(self, connection):  # Airport SID
-        pass
-
-    def PE(self, connection):  # Airport STAR
-        pass
-
-    def PF(self, connection):  # Airport Approach
-        pass
-
-    def PG(self, connection):  # Airport Runway
-        pass
-
-    def PI(self, connection):  # Airport Localizer/Glideslope
-        pass
-
-    def PN(self, connection):  # Airport Terminal NDB
-        # Just send them to the DB table!
-        pass
-
-    def PP(self, connection):  # Airport SBAS Path Point
-        pass
-
-    def PS(self, connection):  # Airport MSA
-        pass
-
-    def UC(self, connection):  # Controlled airspace
-        pass
-
-    def UR(self, connection):  # Restrictive airspace
-        pass

@@ -22,7 +22,8 @@ DatabaseSetup.table_define(conn)
 #############################
 k = 0  # counter for commits
 
-with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
+# with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
+with open('./Private_Files/D_example.txt', 'r') as fh:
     # Get the header info first...
     lastspot = fh.tell()  # This "saves" our current position in file stream
     this = fh.readline().rstrip().upper()
@@ -51,13 +52,12 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
                             this.hingeValue, this.table_name)
             continue
         # Now handle the line since it's "new"
-        # this.record_line() #  come back to this line once record_line() fleshed out.
-
+        this.record_line()  # come back to this line once record_line() fleshed out.
 
         break
         if k == 10:
             conn.commit()
             k = 0
-            break # debug
+            break  # debug
 
 conn.close()

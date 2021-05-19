@@ -1,5 +1,6 @@
 from string import ascii_uppercase  # needed for A-Z string shortcut
 
+
 # TODO: Add Helicopter things (none in MVP version of script)
 
 
@@ -42,6 +43,48 @@ def table_define(connection):
     # PATH_TYPES = [('AF',),('CA',),('CD',),('CF',),('CI',),('CR',),('DF',),('FA',),('FC',),('FD',),
     #               ('FM',),('HA',),('HF',),('HM',),('IF',),('PI',),('RF',),('TF',),('VA',),('VD',),
     #               ('VI',),('VM',),('VR',)]
+    ICAO_CODES = [('  ',), ('K1',), ('K2',), ('K3',), ('K4',), ('K5',),
+                  ('K6',), ('K7',), ('AG',), ('AN',), ('CY',), ('CZ',),
+                  ('PA',), ('PH',), ('AY',), ('BG',), ('BI',), ('BK',),
+                  ('DA',), ('DB',), ('DF',), ('DG',), ('DI',),
+                  ('DN',), ('DR',), ('DT',), ('DX',), ('EB',), ('ED',),
+                  ('EE',), ('EF',), ('EG',), ('EH',), ('EI',), ('EK',),
+                  ('EL',), ('EN',), ('EP',), ('ES',), ('ET',), ('EV',),
+                  ('EY',), ('FA',), ('FB',), ('FC',), ('FD',), ('FE',),
+                  ('FG',), ('FH',), ('FI',), ('FJ',), ('FK',), ('FL',),
+                  ('FM',), ('FN',), ('FO',), ('FP',), ('FQ',), ('FS',),
+                  ('FT',), ('FV',), ('FW',), ('FX',), ('FY',), ('FZ',),
+                  ('GA',), ('GB',), ('GC',), ('GE',), ('GF',), ('GG',),
+                  ('GL',), ('GM',), ('GO',), ('GQ',), ('GS',), ('GU',),
+                  ('GV',), ('HA',), ('HB',), ('HC',), ('HD',), ('HE',),
+                  ('HH',), ('HK',), ('HL',), ('HR',), ('HS',), ('HT',),
+                  ('HU',), ('LA',), ('LB',), ('LC',), ('LD',),
+                  ('LE',), ('LF',), ('LG',), ('LH',), ('LI',), ('LJ',),
+                  ('LK',), ('LL',), ('LM',), ('LN',), ('LO',), ('LP',),
+                  ('LQ',), ('LR',), ('LS',), ('LT',), ('LU',), ('LV',),
+                  ('LW',), ('LX',), ('LY',), ('LZ',), ('MB',), ('MD',),
+                  ('MG',), ('MH',), ('MK',), ('MM',), ('MN',), ('MP',),
+                  ('MR',), ('MS',), ('MT',), ('MU',), ('MW',), ('MY',),
+                  ('MZ',), ('NC',), ('NF',), ('NG',), ('NI',), ('NL',),
+                  ('NS',), ('NT',), ('NV',), ('NW',), ('NZ',), ('OA',),
+                  ('OB',), ('OE',), ('OI',), ('OJ',), ('OK',), ('OL',),
+                  ('OM',), ('OO',), ('OP',), ('OR',), ('OS',), ('OT',),
+                  ('OY',), ('PB',), ('PC',), ('PF',), ('PG',),
+                  ('PJ',), ('PK',), ('PL',), ('PM',), ('PO',),
+                  ('PP',), ('PT',), ('PW',), ('RC',), ('RJ',), ('RK',),
+                  ('RO',), ('RP',), ('SA',), ('SB',), ('SC',), ('SD',),
+                  ('SE',), ('SF',), ('SG',), ('SH',), ('SI',), ('SJ',),
+                  ('SK',), ('SL',), ('SM',), ('SN',), ('SO',), ('SP',),
+                  ('SS',), ('SU',), ('SV',), ('SW',), ('SY',), ('TA',),
+                  ('TB',), ('TD',), ('TF',), ('TG',), ('TI',), ('TJ',),
+                  ('TK',), ('TL',), ('TN',), ('TQ',), ('TR',), ('TT',),
+                  ('TU',), ('TV',), ('TX',), ('U',), ('UA',), ('UB',),
+                  ('UC',), ('UD',), ('UG',), ('UK',), ('UM',), ('UT',),
+                  ('VA',), ('VC',), ('VD',), ('VE',), ('VG',), ('VH',),
+                  ('VI',), ('VL',), ('VM',), ('VN',), ('VO',), ('VQ',),
+                  ('VR',), ('VT',), ('VV',), ('VY',), ('WA',), ('WB',),
+                  ('WI',), ('WM',), ('WP',), ('WQ',), ('WR',), ('WS',),
+                  ('Y',), ('Z',), ('ZK',), ('ZM',)]
 
     c = connection.cursor()
     c.executescript('''
@@ -418,10 +461,11 @@ def table_define(connection):
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         name    TEXT
     );
-    CREATE TABLE GeoIcao (
-        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        code    TEXT
-    );
+    --  This one is a repeat of IcaoCode
+    --CREATE TABLE GeoIcao (
+    --    id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
+    --    code    TEXT
+    --);
     CREATE TABLE NAVAIDclass1 (
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         class   TEXT UNIQUE
@@ -622,48 +666,7 @@ def table_define(connection):
     c.executemany('''INSERT INTO ILScategory (category) VALUES (?);''',
                   ILS_CATS)
     c.executemany('''INSERT INTO IcaoCode (code) VALUES (?)''',
-                  [('K1',), ('K2',), ('K3',), ('K4',), ('K5',),
-                   ('K6',), ('K7',), ('AG',), ('AN',), ('CY',), ('CZ',),
-                   ('PA',), ('PH',), ('AY',), ('BG',), ('BI',), ('BK',),
-                   ('DA',), ('DB',), ('DF',), ('DG',), ('DI',),
-                   ('DN',), ('DR',), ('DT',), ('DX',), ('EB',), ('ED',),
-                   ('EE',), ('EF',), ('EG',), ('EH',), ('EI',), ('EK',),
-                   ('EL',), ('EN',), ('EP',), ('ES',), ('ET',), ('EV',),
-                   ('EY',), ('FA',), ('FB',), ('FC',), ('FD',), ('FE',),
-                   ('FG',), ('FH',), ('FI',), ('FJ',), ('FK',), ('FL',),
-                   ('FM',), ('FN',), ('FO',), ('FP',), ('FQ',), ('FS',),
-                   ('FT',), ('FV',), ('FW',), ('FX',), ('FY',), ('FZ',),
-                   ('GA',), ('GB',), ('GC',), ('GE',), ('GF',), ('GG',),
-                   ('GL',), ('GM',), ('GO',), ('GQ',), ('GS',), ('GU',),
-                   ('GV',), ('HA',), ('HB',), ('HC',), ('HD',), ('HE',),
-                   ('HH',), ('HK',), ('HL',), ('HR',), ('HS',), ('HT',),
-                   ('HU',), ('LA',), ('LB',), ('LC',), ('LD',),
-                   ('LE',), ('LF',), ('LG',), ('LH',), ('LI',), ('LJ',),
-                   ('LK',), ('LL',), ('LM',), ('LN',), ('LO',), ('LP',),
-                   ('LQ',), ('LR',), ('LS',), ('LT',), ('LU',), ('LV',),
-                   ('LW',), ('LX',), ('LY',), ('LZ',), ('MB',), ('MD',),
-                   ('MG',), ('MH',), ('MK',), ('MM',), ('MN',), ('MP',),
-                   ('MR',), ('MS',), ('MT',), ('MU',), ('MW',), ('MY',),
-                   ('MZ',), ('NC',), ('NF',), ('NG',), ('NI',), ('NL',),
-                   ('NS',), ('NT',), ('NV',), ('NW',), ('NZ',), ('OA',),
-                   ('OB',), ('OE',), ('OI',), ('OJ',), ('OK',), ('OL',),
-                   ('OM',), ('OO',), ('OP',), ('OR',), ('OS',), ('OT',),
-                   ('OY',), ('PB',), ('PC',), ('PF',), ('PG',),
-                   ('PJ',), ('PK',), ('PL',), ('PM',), ('PO',),
-                   ('PP',), ('PT',), ('PW',), ('RC',), ('RJ',), ('RK',),
-                   ('RO',), ('RP',), ('SA',), ('SB',), ('SC',), ('SD',),
-                   ('SE',), ('SF',), ('SG',), ('SH',), ('SI',), ('SJ',),
-                   ('SK',), ('SL',), ('SM',), ('SN',), ('SO',), ('SP',),
-                   ('SS',), ('SU',), ('SV',), ('SW',), ('SY',), ('TA',),
-                   ('TB',), ('TD',), ('TF',), ('TG',), ('TI',), ('TJ',),
-                   ('TK',), ('TL',), ('TN',), ('TQ',), ('TR',), ('TT',),
-                   ('TU',), ('TV',), ('TX',), ('U',), ('UA',), ('UB',),
-                   ('UC',), ('UD',), ('UG',), ('UK',), ('UM',), ('UT',),
-                   ('VA',), ('VC',), ('VD',), ('VE',), ('VG',), ('VH',),
-                   ('VI',), ('VL',), ('VM',), ('VN',), ('VO',), ('VQ',),
-                   ('VR',), ('VT',), ('VV',), ('VY',), ('WA',), ('WB',),
-                   ('WI',), ('WM',), ('WP',), ('WQ',), ('WR',), ('WS',),
-                   ('Y',), ('Z',), ('ZK',), ('ZM',)])
+                  ICAO_CODES)
 
     # old things that I might come back to
     # c.executemany('''INSERT INTO ATCindicator (flag) VALUES (?);''', [('A',),('S',)])
@@ -674,4 +677,3 @@ def table_define(connection):
     # c.executemany('''INSERT INTO waypointUsage (code) VALUES (?);''', [('B',),('H',),('L',),(' ',)])
 
     connection.commit()
-
