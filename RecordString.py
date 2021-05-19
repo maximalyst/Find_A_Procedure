@@ -152,14 +152,13 @@ class CIFPLine:
                     self.DMEident = self.navaidIdent
                 else:
                     self.DMEident = self.data[51:55]
+                self.c.execute('INSERT OR IGNORE INTO DMEident (name) VALUES (?);',
+                               (self.DMEident, ))
                 self.DMElatitude = self.data[55:64]
                 self.DMElongitude = self.data[64:74]
             if self.navaidGeoIcao not in self.IcaoCodes:
                 self.IcaoCodes.append(self.navaidGeoIcao)
                 _insert_Icao(self.navaidGeoIcao, self.c)
-
-            self.c.execute('INSERT OR IGNORE INTO DMEident (name) VALUES (?);',
-                           (self.DMEident, ))
 
         if self.table_name in ['PA', 'HA']:
             self.IATAcode = self.data[13:16]
@@ -299,8 +298,7 @@ class CIFPLine:
     def navaidIdent_line(self):  # D_, DB, and PN lines
         # _areaCode_id, _sectionCode_id = CIFPLine.standard_inserts(self, self.table_name, 'navaidIdent')  # TODO fix this
         # TODO: Need INSERT OR IGNORE statements for all of these. Function?
-        print('Hello navaids!!')  # DEBUG
-        print(self.DMEident)
+        # print('Hello navaids!!')  # DEBUG
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.navaidGeoIcao,))
         navaidGeoIcao_id = self.c.fetchone()[0]
@@ -329,20 +327,17 @@ class CIFPLine:
                           (section = ?) AND (subsec = ?)''',
                        (self.section, self.subsection,))
         sectionCode_id = self.c.fetchone()[0]
-        # TODO: dynamic insert of PA and DMEidents...
         self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
                        (self.airHeli_portIdent,))
         airHeli_portIdent_id = self.c.fetchone()[0]
         self.c.execute('SELECT id FROM DMEident WHERE name = ?',
                        (self.DMEident,))
         DMEident_id = self.c.fetchone()[0]
-        self.c.execute('''INSERT OR IGNORE INTO D_ (
+        self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
                                      navaidIdent,
                                      latitude,
                                      longitude,
                                      featureName,
-                                     DMElatitude,
-                                     DMElongitude,
                                      navaidGeoIcao_id,
                                      airHeli_portIdent_id,
                                      airHeli_GeoIcao_id,
@@ -352,27 +347,28 @@ class CIFPLine:
                                      navaidClass3_id,
                                      navaidClass4_id,
                                      navaidClass5_id,
-                                     DMEident_id,
                                      areaCode_id,
                                      sectionCode_id,
                                      file_rec,
                                      cycle_date)
                            VALUES (?, ?, ?, ?, ?, ?, ?, ?,
                                    ?, ?, ?, ?, ?, ?, ?, ?,
-                                   ?, ?, ?, ?)''',
+                                   ?);''',
                        (self.navaidIdent, self.latitude, self.longitude,
-                        self.featureName, self.DMElatitude, self.DMElongitude,
-                        navaidGeoIcao_id, airHeli_portIdent_id,
+                        self.featureName, navaidGeoIcao_id, airHeli_portIdent_id,
                         airHeli_GeoIcao_id, self.navaidFrequency,
                         navaidClass1_id, navaidClass2_id, navaidClass3_id,
-                        navaidClass4_id, navaidClass5_id, DMEident_id,
+                        navaidClass4_id, navaidClass5_id,
                         areaCode_id, sectionCode_id, self.fileRecord,
                         self.fileCycle))
-        # self.connection.commit() # I think we want to commit now so we can add DME items if D_ line? Uncomment if error
         if self.table_name == 'D_':
-            # TODO: remove DME info from above and put it here
-            pass
-
+            self.c.execute('''UPDATE D_
+                               SET DMElatitude = (?),
+                                   DMElongitude = (?),
+                                   DMEident_id = (?)
+                               WHERE navaidIdent = (?);''',
+                           (self.DMElatitude, self.DMElongitude, DMEident_id, self.navaidIdent))
+        self.connection.commit()
 
     def waypointIdent_line(self):  # EA, PC lines
         pass

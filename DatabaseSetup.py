@@ -611,9 +611,9 @@ def table_define(connection):
     for each in KNOWN_SECCODES:
         c.execute('''INSERT INTO SecCode (section,subsec) VALUES (?,?);''',
                   (each[0][0], each[0][1]))
-    c.execute('''INSERT INTO NAVAIDclass1 (class) VALUES (?);''', ('V',))
+    c.executemany('''INSERT INTO NAVAIDclass1 (class) VALUES (?);''', [(' ',), ('V',)])
     c.executemany('''INSERT INTO NAVAIDclass2 (class) VALUES (?);''',
-                  [('D',), ('T',), ('M',), ('I',), ('N',), ('P',)])
+                  [(' ',), ('D',), ('T',), ('M',), ('I',), ('N',), ('P',)])
     c.executemany('''INSERT INTO NAVAIDclass3 (class) VALUES (?);''',
                   [('T',), ('L',), ('H',), ('U',), ('C',)])
     c.executemany('''INSERT INTO NAVAIDclass4 (class) VALUES (?);''',
