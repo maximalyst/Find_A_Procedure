@@ -53,7 +53,7 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
                             this.hingeValue, this.table_name)
             continue
         # Now handle the line since it's "new"
-        this.record_line()  # come back to this line once record_line() fleshed out.
+        this.record_line()
 
         # if k == 10:
         #     conn.commit()

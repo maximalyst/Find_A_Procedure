@@ -106,9 +106,8 @@ class CIFPLine:
         elif self.table_name == 'PN':
             self.table_name = 'DB'
 
-        if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC',
-                               'PD', 'PE', 'PF', 'HD', 'HE', 'HF', 'PG', 'PI',
-                               'PP', 'PS', 'HS']:
+        if self.table_name in ['D_', 'DB', 'EA', 'PA', 'HA', 'HC', 'PD', 'PE', 'PF',
+                               'HD', 'HE', 'HF', 'PG', 'PI', 'PP', 'PS', 'HS']:
             self.airHeli_portIdent = self.data[6:10]
             self.airHeli_GeoIcao = self.data[10:12]
 
@@ -268,9 +267,6 @@ class CIFPLine:
         pass
 
     def navaidIdent_line(self):  # D_, DB, and PN lines
-        # _areaCode_id, _sectionCode_id = CIFPLine.standard_inserts(self, self.table_name, 'navaidIdent')  # TODO fix this
-        # TODO: Need INSERT OR IGNORE statements for all of these. Function?
-        # print('Hello navaids!!')  # DEBUG
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.navaidGeoIcao,))
         navaidGeoIcao_id = self.c.fetchone()[0]
