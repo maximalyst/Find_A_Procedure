@@ -5,8 +5,9 @@ import logging
 from RecordString import CIFPLine
 
 # Temporary things I'm only allowing for MVP version
-ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
-                      'PA', 'PD', 'PE', 'PF', 'PG', 'PI']
+# ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
+#                       'PA', 'PD', 'PE', 'PF', 'PG', 'PI']
+ALLOWED_DATA_LINES = ['D ', 'DB', 'PN']
 
 if os.path.exists('CIFP_parse.sqlite'):
     os.remove('CIFP_parse.sqlite')
@@ -22,8 +23,8 @@ DatabaseSetup.table_define(conn)
 #############################
 k = 0  # counter for commits
 
-# with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
-with open('./Private_Files/D_example.txt', 'r') as fh:
+# with open('./Private_Files/D_example.txt', 'r') as fh:
+with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
     # Get the header info first...
     lastspot = fh.tell()  # This "saves" our current position in file stream
     this = fh.readline().rstrip().upper()
@@ -54,10 +55,9 @@ with open('./Private_Files/D_example.txt', 'r') as fh:
         # Now handle the line since it's "new"
         this.record_line()  # come back to this line once record_line() fleshed out.
 
-        break
-        if k == 10:
-            conn.commit()
-            k = 0
-            break  # debug
+        # if k == 10:
+        #     conn.commit()
+        #     k = 0
+        #     break  # debug
 
 conn.close()

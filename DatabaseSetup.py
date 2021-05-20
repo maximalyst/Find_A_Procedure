@@ -13,6 +13,13 @@ def table_define(connection):
                       ('HA',), ('HC',), ('HF',), ('HS',), ('PA',), ('PC',),
                       ('PD',), ('PE',), ('PF',), ('PG',), ('PI',), ('PN',),
                       ('PP',), ('PS',), ('UC',), ('UR',)]
+    # Navaid classes include both VOR and NDB codes:
+    # TODO: ADD AIR/HELIPORT LOCALIZER/MARKER MEANINGS FROM PI
+    NAVAID_CLASS1 = [(' ',), ('V',), ('H',), ('S',), ('M',)]
+    NAVAID_CLASS2 = [(' ',), ('D',), ('T',), ('M',), ('I',), ('N',), ('P',), ('O',), ('C',)]
+    NAVAID_CLASS3 = [(' ',), ('T',), ('L',), ('H',), ('U',), ('C',), ('M',)]
+    NAVAID_CLASS4 = [(' ',), ('D',), ('A',), ('B',), ('W',)]
+    NAVAID_CLASS5 = [(' ',), ('N',), ('B',)]
     # ROUTE_TYPES_ER = [('A',),('C',),('D',),('H',),('O',),('R',),('S',),('T',)]
     # ROUTE_TYPES_RTE_QUAL1 = [('G',),('F',),('A',),('U',)]
     # ROUTE_TYPES_RTE_QUAL2 = [('R',),('P',),('T',)]
@@ -611,15 +618,11 @@ def table_define(connection):
     for each in KNOWN_SECCODES:
         c.execute('''INSERT INTO SecCode (section,subsec) VALUES (?,?);''',
                   (each[0][0], each[0][1]))
-    c.execute('''INSERT INTO NAVAIDclass1 (class) VALUES (?);''', ('V',))
-    c.executemany('''INSERT INTO NAVAIDclass2 (class) VALUES (?);''',
-                  [('D',), ('T',), ('M',), ('I',), ('N',), ('P',)])
-    c.executemany('''INSERT INTO NAVAIDclass3 (class) VALUES (?);''',
-                  [('T',), ('L',), ('H',), ('U',), ('C',)])
-    c.executemany('''INSERT INTO NAVAIDclass4 (class) VALUES (?);''',
-                  [('D',), ('A',), ('B',), ('W',), (' ',)])
-    c.executemany('''INSERT INTO NAVAIDclass5 (class) VALUES (?);''',
-                  [(' ',), ('N',)])
+    c.executemany('''INSERT INTO NAVAIDclass1 (class) VALUES (?);''', NAVAID_CLASS1)
+    c.executemany('''INSERT INTO NAVAIDclass2 (class) VALUES (?);''', NAVAID_CLASS2)
+    c.executemany('''INSERT INTO NAVAIDclass3 (class) VALUES (?);''', NAVAID_CLASS3)
+    c.executemany('''INSERT INTO NAVAIDclass4 (class) VALUES (?);''', NAVAID_CLASS4)
+    c.executemany('''INSERT INTO NAVAIDclass5 (class) VALUES (?);''', NAVAID_CLASS5)
     c.executemany('''INSERT INTO aircraftDesignType (type) VALUES (?);''',
                   [each for each in (list(ascii_uppercase)[:-1] + [' '])])
     c.executemany('''INSERT INTO waypointDescription1 (desc) VALUES (?);''',

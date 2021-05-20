@@ -80,17 +80,7 @@ def _primary_matcher(_table_name):
     #     pass
 
 
-def _insert_Icao(newcode, cursor):
-    # cursor.execute('''INSERT INTO IcaoCode (code) VALUES (?)''',
-    #                (newcode,))
-    # TODO: Delete this and implementation of insertion in __init__
-    #  (old procedure). Ctrl+F "not in self.IcaoCodes" and delete
-    pass
-
-
 class CIFPLine:
-    IcaoCodes = []  # Yup, we're appending for the whole class, not unique
-
     def __init__(self, data, connection):
         self.data = data
         self.connection = connection
@@ -101,7 +91,7 @@ class CIFPLine:
         self.fileRecord = self.data[123:128]
         self.fileCycle = self.data[128:]
 
-        if self.section not in ['P', 'H']:
+        if self.data[4:6] not in ['PA', 'PD', 'PE', 'PF', 'PG', 'PI', 'HA', 'HD', 'HE', 'HF']:
             if self.data[5] == ' ':
                 self.subsection = '_'  # covers D_ (VHF navaid) case
             else:
@@ -121,9 +111,6 @@ class CIFPLine:
                                'PP', 'PS', 'HS']:
             self.airHeli_portIdent = self.data[6:10]
             self.airHeli_GeoIcao = self.data[10:12]
-            if self.airHeli_GeoIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.airHeli_GeoIcao)
-                _insert_Icao(self.airHeli_GeoIcao, self.c)
 
             self.c.execute('INSERT OR IGNORE INTO PA (airHeli_portIdent) VALUES (?);',
                            (self.airHeli_portIdent, ))
@@ -152,14 +139,10 @@ class CIFPLine:
                     self.DMEident = self.navaidIdent
                 else:
                     self.DMEident = self.data[51:55]
+                self.c.execute('INSERT OR IGNORE INTO DMEident (name) VALUES (?);',
+                               (self.DMEident, ))
                 self.DMElatitude = self.data[55:64]
                 self.DMElongitude = self.data[64:74]
-            if self.navaidGeoIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.navaidGeoIcao)
-                _insert_Icao(self.navaidGeoIcao, self.c)
-
-            self.c.execute('INSERT OR IGNORE INTO DMEident (name) VALUES (?);',
-                           (self.DMEident, ))
 
         if self.table_name in ['PA', 'HA']:
             self.IATAcode = self.data[13:16]
@@ -178,9 +161,6 @@ class CIFPLine:
                 self.longRunwaySurface = self.data[31]
             else:
                 self.heliportType = self.data[31]
-            if self.recommendedNavaidGeoIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.recommendedNavaidGeoIcao)
-                _insert_Icao(self.recommendedNavaidGeoIcao, self.c)
 
         if self.table_name in ['ER', 'PD', 'PE', 'PF', 'HD', 'HE', 'HF']:
             self.fixIdent = self.data[29:34]
@@ -204,12 +184,6 @@ class CIFPLine:
             else:
                 self.routeIdent = self.data[13:18]
                 self.sequenceNumber = self.data[25:29]
-            if self.fixIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.fixIcao)
-                _insert_Icao(self.fixIcao, self.c)
-            if self.recommendedNavaidGeoIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.recommendedNavaidGeoIcao)
-                _insert_Icao(self.recommendedNavaidGeoIcao, self.c)
 
         if self.table_name in ['EA', 'PC', 'HC']:
             self.waypointIdent = self.data[13:18]
@@ -218,9 +192,6 @@ class CIFPLine:
             self.waypointType2 = self.data[27]
             self.waypointType3 = self.data[28]
             self.waypointusage = self.data[30]
-            if self.waypointIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.waypointIcao)
-                _insert_Icao(self.waypointIcao, self.c)
 
         if self.table_name == 'PG':
             self.runwayIdent = self.data[13:18]
@@ -299,8 +270,7 @@ class CIFPLine:
     def navaidIdent_line(self):  # D_, DB, and PN lines
         # _areaCode_id, _sectionCode_id = CIFPLine.standard_inserts(self, self.table_name, 'navaidIdent')  # TODO fix this
         # TODO: Need INSERT OR IGNORE statements for all of these. Function?
-        print('Hello navaids!!')  # DEBUG
-        print(self.DMEident)
+        # print('Hello navaids!!')  # DEBUG
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.navaidGeoIcao,))
         navaidGeoIcao_id = self.c.fetchone()[0]
@@ -329,20 +299,14 @@ class CIFPLine:
                           (section = ?) AND (subsec = ?)''',
                        (self.section, self.subsection,))
         sectionCode_id = self.c.fetchone()[0]
-        # TODO: dynamic insert of PA and DMEidents...
         self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
                        (self.airHeli_portIdent,))
         airHeli_portIdent_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM DMEident WHERE name = ?',
-                       (self.DMEident,))
-        DMEident_id = self.c.fetchone()[0]
-        self.c.execute('''INSERT OR IGNORE INTO D_ (
+        self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
                                      navaidIdent,
                                      latitude,
                                      longitude,
                                      featureName,
-                                     DMElatitude,
-                                     DMElongitude,
                                      navaidGeoIcao_id,
                                      airHeli_portIdent_id,
                                      airHeli_GeoIcao_id,
@@ -352,27 +316,30 @@ class CIFPLine:
                                      navaidClass3_id,
                                      navaidClass4_id,
                                      navaidClass5_id,
-                                     DMEident_id,
                                      areaCode_id,
                                      sectionCode_id,
                                      file_rec,
                                      cycle_date)
                            VALUES (?, ?, ?, ?, ?, ?, ?, ?,
                                    ?, ?, ?, ?, ?, ?, ?, ?,
-                                   ?, ?, ?, ?)''',
+                                   ?);''',
                        (self.navaidIdent, self.latitude, self.longitude,
-                        self.featureName, self.DMElatitude, self.DMElongitude,
-                        navaidGeoIcao_id, airHeli_portIdent_id,
+                        self.featureName, navaidGeoIcao_id, airHeli_portIdent_id,
                         airHeli_GeoIcao_id, self.navaidFrequency,
                         navaidClass1_id, navaidClass2_id, navaidClass3_id,
-                        navaidClass4_id, navaidClass5_id, DMEident_id,
+                        navaidClass4_id, navaidClass5_id,
                         areaCode_id, sectionCode_id, self.fileRecord,
                         self.fileCycle))
-        # self.connection.commit() # I think we want to commit now so we can add DME items if D_ line? Uncomment if error
         if self.table_name == 'D_':
-            # TODO: remove DME info from above and put it here
-            pass
-
+            self.c.execute('SELECT id FROM DMEident WHERE name = ?', (self.DMEident,))
+            DMEident_id = self.c.fetchone()[0]
+            self.c.execute('''UPDATE D_
+                               SET DMElatitude = (?),
+                                   DMElongitude = (?),
+                                   DMEident_id = (?)
+                               WHERE navaidIdent = (?);''',
+                           (self.DMElatitude, self.DMElongitude, DMEident_id, self.navaidIdent))
+        self.connection.commit()
 
     def waypointIdent_line(self):  # EA, PC lines
         pass
