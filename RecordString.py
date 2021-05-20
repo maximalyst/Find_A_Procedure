@@ -80,17 +80,7 @@ def _primary_matcher(_table_name):
     #     pass
 
 
-def _insert_Icao(newcode, cursor):
-    # cursor.execute('''INSERT INTO IcaoCode (code) VALUES (?)''',
-    #                (newcode,))
-    # TODO: Delete this and implementation of insertion in __init__
-    #  (old procedure). Ctrl+F "not in self.IcaoCodes" and delete
-    pass
-
-
 class CIFPLine:
-    IcaoCodes = []  # Yup, we're appending for the whole class, not unique
-
     def __init__(self, data, connection):
         self.data = data
         self.connection = connection
@@ -101,7 +91,7 @@ class CIFPLine:
         self.fileRecord = self.data[123:128]
         self.fileCycle = self.data[128:]
 
-        if self.section not in ['P', 'H']:
+        if self.data[4:6] not in ['PA', 'PD', 'PE', 'PF', 'PG', 'PI', 'HA', 'HD', 'HE', 'HF']:
             if self.data[5] == ' ':
                 self.subsection = '_'  # covers D_ (VHF navaid) case
             else:
@@ -121,9 +111,6 @@ class CIFPLine:
                                'PP', 'PS', 'HS']:
             self.airHeli_portIdent = self.data[6:10]
             self.airHeli_GeoIcao = self.data[10:12]
-            if self.airHeli_GeoIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.airHeli_GeoIcao)
-                _insert_Icao(self.airHeli_GeoIcao, self.c)
 
             self.c.execute('INSERT OR IGNORE INTO PA (airHeli_portIdent) VALUES (?);',
                            (self.airHeli_portIdent, ))
@@ -156,9 +143,6 @@ class CIFPLine:
                                (self.DMEident, ))
                 self.DMElatitude = self.data[55:64]
                 self.DMElongitude = self.data[64:74]
-            if self.navaidGeoIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.navaidGeoIcao)
-                _insert_Icao(self.navaidGeoIcao, self.c)
 
         if self.table_name in ['PA', 'HA']:
             self.IATAcode = self.data[13:16]
@@ -177,9 +161,6 @@ class CIFPLine:
                 self.longRunwaySurface = self.data[31]
             else:
                 self.heliportType = self.data[31]
-            if self.recommendedNavaidGeoIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.recommendedNavaidGeoIcao)
-                _insert_Icao(self.recommendedNavaidGeoIcao, self.c)
 
         if self.table_name in ['ER', 'PD', 'PE', 'PF', 'HD', 'HE', 'HF']:
             self.fixIdent = self.data[29:34]
@@ -203,12 +184,6 @@ class CIFPLine:
             else:
                 self.routeIdent = self.data[13:18]
                 self.sequenceNumber = self.data[25:29]
-            if self.fixIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.fixIcao)
-                _insert_Icao(self.fixIcao, self.c)
-            if self.recommendedNavaidGeoIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.recommendedNavaidGeoIcao)
-                _insert_Icao(self.recommendedNavaidGeoIcao, self.c)
 
         if self.table_name in ['EA', 'PC', 'HC']:
             self.waypointIdent = self.data[13:18]
@@ -217,9 +192,6 @@ class CIFPLine:
             self.waypointType2 = self.data[27]
             self.waypointType3 = self.data[28]
             self.waypointusage = self.data[30]
-            if self.waypointIcao not in self.IcaoCodes:
-                self.IcaoCodes.append(self.waypointIcao)
-                _insert_Icao(self.waypointIcao, self.c)
 
         if self.table_name == 'PG':
             self.runwayIdent = self.data[13:18]
@@ -330,9 +302,6 @@ class CIFPLine:
         self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
                        (self.airHeli_portIdent,))
         airHeli_portIdent_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM DMEident WHERE name = ?',
-                       (self.DMEident,))
-        DMEident_id = self.c.fetchone()[0]
         self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
                                      navaidIdent,
                                      latitude,
@@ -362,6 +331,8 @@ class CIFPLine:
                         areaCode_id, sectionCode_id, self.fileRecord,
                         self.fileCycle))
         if self.table_name == 'D_':
+            self.c.execute('SELECT id FROM DMEident WHERE name = ?', (self.DMEident,))
+            DMEident_id = self.c.fetchone()[0]
             self.c.execute('''UPDATE D_
                                SET DMElatitude = (?),
                                    DMElongitude = (?),
