@@ -90,8 +90,10 @@ def table_define(connection):
                   ('SS',), ('SU',), ('SV',), ('SW',), ('SY',), ('TA',),
                   ('TB',), ('TD',), ('TF',), ('TG',), ('TI',), ('TJ',),
                   ('TK',), ('TL',), ('TN',), ('TQ',), ('TR',), ('TT',),
-                  ('TU',), ('TV',), ('TX',), ('U',), ('UA',), ('UB',),
-                  ('UC',), ('UD',), ('UG',), ('UK',), ('UM',), ('UT',),
+                  ('TU',), ('TV',), ('TX',), ('UA',), ('UB',), ('UC',),
+                  ('UD',), ('UE',), ('UG',), ('UH',), ('UI',), ('UK',),
+                  ('UL',), ('UM',), ('UN',), ('UO',), ('UT',), ('UR',),
+                  ('US',), ('UU',), ('UW',),
                   ('VA',), ('VC',), ('VD',), ('VE',), ('VG',), ('VH',),
                   ('VI',), ('VL',), ('VM',), ('VN',), ('VO',), ('VQ',),
                   ('VR',), ('VT',), ('VV',), ('VY',), ('WA',), ('WB',),
@@ -473,6 +475,10 @@ def table_define(connection):
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         name    TEXT
     );
+    CREATE TABLE fixIdent (
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
+        name    TEXT
+    );
     --  This one is a repeat of IcaoCode
     --CREATE TABLE GeoIcao (
     --    id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
@@ -635,15 +641,15 @@ def table_define(connection):
     c.executemany('''INSERT INTO aircraftDesignType (type) VALUES (?);''',
                   [each for each in (list(ascii_uppercase)[:-1] + [' '])])
     c.executemany('''INSERT INTO waypointDescription1 (desc) VALUES (?);''',
-                  [('A',), ('E',), ('F',), ('G',), ('H',), ('N',), ('P',),
+                  [(' ',), ('A',), ('E',), ('F',), ('G',), ('H',), ('N',), ('P',),
                    ('R',), ('T',), ('V',)])
     c.executemany('''INSERT INTO waypointDescription2 (desc) VALUES (?);''',
-                  [('B',), ('E',), ('U',), ('Y',)])
+                  [(' ',), ('B',), ('E',), ('U',), ('Y',)])
     c.executemany('''INSERT INTO waypointDescription3 (desc) VALUES (?);''',
-                  [('A',), ('B',), ('C',), ('G',), ('M',), ('R',), ('S',)])
+                  [(' ',), ('A',), ('B',), ('C',), ('G',), ('M',), ('R',), ('S',)])
     c.executemany('''INSERT INTO waypointDescription4 (desc) VALUES (?);''',
                   [each for each in
-                   (list(ascii_uppercase)[0:9] + ['M', 'N', 'P'])])
+                   ([' '] + list(ascii_uppercase)[0:9] + ['M', 'N', 'P'])])
     c.executemany('''INSERT INTO hasIFR (flag) VALUES (?);''',
                   [('N',), ('Y',)])
     c.executemany('''INSERT INTO publicOrMilitary (flag) VALUES (?);''',
@@ -679,6 +685,9 @@ def table_define(connection):
                   ILS_CATS)
     c.executemany('''INSERT INTO IcaoCode (code) VALUES (?)''',
                   ICAO_CODES)
+
+    # Default blank/null values for certain tables...
+    c.execute('INSERT INTO D_ (navaidIdent) VALUES (?)', ('    ', ))
 
     # old things that I might come back to
     # c.executemany('''INSERT INTO ATCindicator (flag) VALUES (?);''', [('A',),('S',)])

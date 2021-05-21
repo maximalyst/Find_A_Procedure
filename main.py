@@ -5,9 +5,8 @@ import logging
 from RecordString import CIFPLine
 
 # Temporary things I'm only allowing for MVP version
-# ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
+ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER']
 #                       'PA', 'PD', 'PE', 'PF', 'PG', 'PI']
-ALLOWED_DATA_LINES = ['D ', 'DB', 'PN']  # , 'EA', 'PC']
 
 if os.path.exists('CIFP_parse.sqlite'):
     os.remove('CIFP_parse.sqlite')
@@ -38,6 +37,7 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
     fh.seek(lastspot, 0)
 
     # now for the part we're all here for
+    print('Running, standby...')
     for a in fh:
         k += 1
         rawdata = a.rstrip().upper()
@@ -46,7 +46,7 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
             continue
 
         this = CIFPLine(rawdata, conn)
-        print(rawdata)  # DEBUG
+        #print(rawdata)  # DEBUG
         if this.already_exists() is True:
             logging.warning('%s', rawdata)
             logging.warning('%s already exists in database table %s\n',
