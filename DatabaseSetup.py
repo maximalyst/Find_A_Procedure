@@ -47,11 +47,16 @@ def table_define(connection):
                                ('L',), ('S',), ('V',), ('W',), ('X',)]
     ILS_CATS = [('0',), ('1',), ('2',), ('3',), ('I',), ('L',), ('A',), ('S',),
                 ('F',)]
+    WAYPOINT_TYPE1 = [' ', 'A', 'C', 'I', 'M', 'N', 'O', 'R', 'U', 'V', 'W']
+    WAYPOINT_TYPE2 = [' ', 'A', 'B', 'C', 'D', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+                      'N', 'O', 'P', 'R', 'S', 'U', 'V', 'W']
+    WAYPOINT_TYPE3 = [' ', 'D', 'E', 'F', 'Z', 'G']
+
     # PATH_TYPES = [('AF',),('CA',),('CD',),('CF',),('CI',),('CR',),('DF',),('FA',),('FC',),('FD',),
     #               ('FM',),('HA',),('HF',),('HM',),('IF',),('PI',),('RF',),('TF',),('VA',),('VD',),
     #               ('VI',),('VM',),('VR',)]
     ICAO_CODES = [('  ',), ('K1',), ('K2',), ('K3',), ('K4',), ('K5',),
-                  ('K6',), ('K7',), ('AG',), ('AN',), ('CY',), ('CZ',),
+                  ('K6',), ('K7',), ('K ',), ('AG',), ('AN',), ('CY',), ('CZ',),
                   ('PA',), ('PH',), ('AY',), ('BG',), ('BI',), ('BK',),
                   ('DA',), ('DB',), ('DF',), ('DG',), ('DI',),
                   ('DN',), ('DR',), ('DT',), ('DX',), ('EB',), ('ED',),
@@ -78,7 +83,7 @@ def table_define(connection):
                   ('OM',), ('OO',), ('OP',), ('OR',), ('OS',), ('OT',),
                   ('OY',), ('PB',), ('PC',), ('PF',), ('PG',),
                   ('PJ',), ('PK',), ('PL',), ('PM',), ('PO',),
-                  ('PP',), ('PT',), ('PW',), ('RC',), ('RJ',), ('RK',),
+                  ('PP',), ('PT',), ('PW',), ('P ',), ('RC',), ('RJ',), ('RK',),
                   ('RO',), ('RP',), ('SA',), ('SB',), ('SC',), ('SD',),
                   ('SE',), ('SF',), ('SG',), ('SH',), ('SI',), ('SJ',),
                   ('SK',), ('SL',), ('SM',), ('SN',), ('SO',), ('SP',),
@@ -623,6 +628,10 @@ def table_define(connection):
     c.executemany('''INSERT INTO NAVAIDclass3 (class) VALUES (?);''', NAVAID_CLASS3)
     c.executemany('''INSERT INTO NAVAIDclass4 (class) VALUES (?);''', NAVAID_CLASS4)
     c.executemany('''INSERT INTO NAVAIDclass5 (class) VALUES (?);''', NAVAID_CLASS5)
+    c.executemany('''INSERT INTO WaypointType1 (type) VALUES (?);''', WAYPOINT_TYPE1)
+    c.executemany('''INSERT INTO WaypointType2 (type) VALUES (?);''', WAYPOINT_TYPE2)
+    c.executemany('''INSERT INTO WaypointType3 (type) VALUES (?);''', WAYPOINT_TYPE3)
+    c.executemany('''INSERT INTO WaypointUsage (usage) VALUES (?)''', [' ', 'B', 'H', 'L'])
     c.executemany('''INSERT INTO aircraftDesignType (type) VALUES (?);''',
                   [each for each in (list(ascii_uppercase)[:-1] + [' '])])
     c.executemany('''INSERT INTO waypointDescription1 (desc) VALUES (?);''',

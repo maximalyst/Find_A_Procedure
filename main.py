@@ -7,7 +7,7 @@ from RecordString import CIFPLine
 # Temporary things I'm only allowing for MVP version
 # ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
 #                       'PA', 'PD', 'PE', 'PF', 'PG', 'PI']
-ALLOWED_DATA_LINES = ['D ', 'DB', 'PN']
+ALLOWED_DATA_LINES = ['D ', 'DB', 'PN']  # , 'EA', 'PC']
 
 if os.path.exists('CIFP_parse.sqlite'):
     os.remove('CIFP_parse.sqlite')

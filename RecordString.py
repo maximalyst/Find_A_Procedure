@@ -266,6 +266,17 @@ class CIFPLine:
                         _primary_matcher(self.table_name), _primary_key))
         pass
 
+    def _standard_selects(self):
+        self.c.execute('''SELECT rowid FROM SecCode WHERE
+                          (section = ?) AND (subsec = ?)''',
+                       (self.section, self.subsection,))
+        _sectionCode_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM AreaCode WHERE area = ?',
+                       (self.areaCode,))
+        _areaCode_id = self.c.fetchone()[0]
+
+        return _sectionCode_id, _areaCode_id
+
     def navaidIdent_line(self):  # D_, DB, and PN lines
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.navaidGeoIcao,))
@@ -288,16 +299,11 @@ class CIFPLine:
         self.c.execute('SELECT id FROM NAVAIDclass5 WHERE class = ?',
                        (self.navaidClass[4],))
         navaidClass5_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM AreaCode WHERE area = ?',
-                       (self.areaCode,))
-        areaCode_id = self.c.fetchone()[0]
-        self.c.execute('''SELECT rowid FROM SecCode WHERE
-                          (section = ?) AND (subsec = ?)''',
-                       (self.section, self.subsection,))
-        sectionCode_id = self.c.fetchone()[0]
         self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
                        (self.airHeli_portIdent,))
         airHeli_portIdent_id = self.c.fetchone()[0]
+        sectionCode_id = self._standard_selects()[0]
+        areaCode_id = self._standard_selects()[1]
         self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
                                      navaidIdent,
                                      latitude,
@@ -338,10 +344,70 @@ class CIFPLine:
         self.connection.commit()
 
     def waypointIdent_line(self):  # EA, PC lines
-        pass
+        self.c.execute('SELECT id FROM WaypointType1 WHERE type = ?',
+                       (self.waypointType1[0],))
+        waypointType1_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM WaypointType2 WHERE type = ?',
+                       (self.waypointType2[0],))
+        waypointType2_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM WaypointType3 WHERE type = ?',
+                       (self.waypointType3[0],))
+        waypointType3_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM WaypointUsage WHERE usage = ?',
+                       (self.waypointType3[0],))
+        waypointUsage_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
+                       (self.airHeli_GeoIcao,))
+        airHeli_GeoIcao_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
+                       (self.airHeli_portIdent,))
+        airHeli_portIdent_id = self.c.fetchone()[0]
+        sectionCode_id = self._standard_selects()[0]
+        areaCode_id = self._standard_selects()[1]
+        self.c.execute('''INSERT OR IGNORE INTO EA (
+                                waypointIdent,
+                                waypointIcao_id,
+                                waypointType1_id,
+                                waypointType2_id,
+                                waypointType3_id,
+                                waypointusage_id,
+                                airHeli_portIdent_id,
+                                airHeli_GeoIcao_id,
+                                latitude,
+                                longitude,
+                                featureName,
+                                areaCode_id,
+                                sectionCode_id,
+                                file_rec,
+                                cycle_date)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
+                       (self.waypointIdent, self.waypointIdent, waypointType1_id,
+                        waypointType2_id, waypointType3_id, waypointUsage_id,
+                        airHeli_portIdent_id, airHeli_GeoIcao_id, self.latitude,
+                        self.longitude, self.featureName, areaCode_id, sectionCode_id,
+                        self.fileRecord, self.fileCycle))
 
     def routeIdent_line(self, connection):  # ER lines
-        pass
+        self.c.execute('''INSERT OR IGNORE INTO ER (
+                                routeIdent,
+                                sequenceNumber,
+                                fixIdent_id,
+                                fixIcao_id,
+                                fixSectionCode_id,
+                                fixSubsectionCode_id,
+                                waypointDescription1_id,
+                                waypointDescription2_id,
+                                waypointDescription3_id,
+                                waypointDescription4_id,
+                                recommendedNavaid_id,
+                                recommendedNavaidGeoIcao_id,
+                                areaCode_id,
+                                sectionCode_id,
+                                --subsectionCode_id,
+                                file_rec,
+                                cycle_date)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
+                       ())
 
     def airHeli_portIdent_line(self, connection):  # PA and HA lines
         pass
