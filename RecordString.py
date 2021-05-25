@@ -446,7 +446,77 @@ class CIFPLine:
                         self.fileCycle))
 
     def airHeli_portIdent_line(self, connection):  # PA and HA lines
-        pass
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
+                       (self.airHeli_GeoIcao,))
+        airHeli_GeoIcao_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
+                       (self.airHeli_portIdent,))
+        airHeli_portIdent_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM hasIFR WHERE flag = ?',
+                       (self.hasIFR,))
+        hasIFR_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM D_ WHERE navaidIdent = ?',
+                       (self.recommendedNavaid, ))
+        recommendedNavaid_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
+                       (self.recommendedNavaidGeoIcao,))
+        recommendedNavaidGeoIcao_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM publicOrMilitary WHERE name = ?',
+                       (self.publicOrMilitary,))
+        publicOrMilitary_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM timeZone WHERE zone = ?',
+                       (self.timeZone,))
+        timeZone_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM DST WHERE flag = ?',
+                       (self.DST,))
+        DST_id = self.c.fetchone()[0]
+        sectionCode_id = self._standard_selects()[0]
+        areaCode_id = self._standard_selects()[1]
+        if self.table_name == 'PA':
+            # var1 = 'longestRunway'  # inputting these maybe later
+            # var2 = 'longRwySfcCode'
+            # var3 = 'magOrTrue'
+            pass
+        else:
+            # var1 = 'datumCode'
+            # var2 = 'heliType'
+            # TODO: finish this area
+            pass
+        self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
+                                airHeli_portIdent,
+                                airHeli_GeoIcao_id,
+                                latitude,
+                                longitude,
+                                featureName,
+                                IATAcode_id,
+                                speedLimitAltitude,
+                                hasIFR_id,
+                                magneticVariation,
+                                elevation,
+                                speedLimit,
+                                recommendedNavaid_id,
+                                recommendedNavaidGeoIcao_id
+                                publicOrMilitary_id,
+                                timeZone_id,
+                                DST_id,
+                                areaCode_id,
+                                sectionCode_id,
+                                file_rec,
+                                cycle_date)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
+                       (airHeli_portIdent_id, airHeli_GeoIcao_id, self.latitude,
+                        self.longitude, self.featureName, IATAcode_id, self.speedLimitAltitude,
+                        hasIFR_id, self.magneticVariation, self.elevation, self.speedLimit,
+                        recommendedNavaid_id, recommendedNavaidGeoIcao_id, publicOrMilitary_id,
+                        timeZone_id, DST_id, areaCode_id, sectionCode_id, self.fileRecord,
+                        self.fileCycle))
+        if self.table_name == 'PA':
+            # insert other airport-specific values
+            pass
+        else:
+            # insert other heliport values
+            pass
 
     def SidStarApproachIdent_line(self, connection):  # PD, PE, PF (and H_) lines
         pass

@@ -51,6 +51,7 @@ def table_define(connection):
     WAYPOINT_TYPE2 = [' ', 'A', 'B', 'C', 'D', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                       'N', 'O', 'P', 'R', 'S', 'U', 'V', 'W']
     WAYPOINT_TYPE3 = [' ', 'D', 'E', 'F', 'Z', 'G']
+    TIME_ZONES = []  # TODO: page 223
 
     # PATH_TYPES = [('AF',),('CA',),('CD',),('CF',),('CI',),('CR',),('DF',),('FA',),('FC',),('FD',),
     #               ('FM',),('HA',),('HF',),('HM',),('IF',),('PI',),('RF',),('TF',),('VA',),('VD',),
@@ -222,6 +223,7 @@ def table_define(connection):
         featureName     TEXT,
         IATAcode_id     INTEGER,
         speedLimitAltitude TEXT,
+        --longestRunway TEXT,
         hasIFR_id       INTEGER,
         magneticVariation TEXT,
         elevation       TEXT,
@@ -229,8 +231,9 @@ def table_define(connection):
         recommendedNavaid_id INTEGER,
         recommendedNavaidGeoIcao_id INTEGER,
         publicOrMilitary_id INTEGER,
-        timeZone        TEXT,
+        timeZone_id     INTEGER,
         DST_id          INTEGER,
+        --magOrTrue_id  INTEGER,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
         --subsectionCode_id INTEGER,
@@ -552,6 +555,10 @@ def table_define(connection):
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         flag    TEXT UNIQUE
     );
+    CREATE TABLE timeZone (
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
+        zone    TEXT UNIQUE
+    );
     CREATE TABLE DST (
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         flag    TEXT UNIQUE
@@ -685,6 +692,8 @@ def table_define(connection):
                   ILS_CATS)
     c.executemany('''INSERT INTO IcaoCode (code) VALUES (?)''',
                   ICAO_CODES)
+    c.executemany('''INSERT INTO timeZone (zone) VALUES (?)''',
+                  TIME_ZONES)
 
     # Default blank/null values for certain tables...
     c.execute('INSERT INTO D_ (navaidIdent) VALUES (?)', ('    ', ))
