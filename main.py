@@ -5,8 +5,8 @@ import logging
 from RecordString import CIFPLine
 
 # Temporary things I'm only allowing for MVP version
-ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER']
-#                       'PA', 'PD', 'PE', 'PF', 'PG', 'PI']
+ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
+                      'PA']  # , 'PD', 'PE', 'PF', 'PG', 'PI']
 
 if os.path.exists('CIFP_parse.sqlite'):
     os.remove('CIFP_parse.sqlite')
@@ -42,16 +42,20 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
         k += 1
         rawdata = a.rstrip().upper()
         # In this version we're only dealing with certain datatypes
-        if rawdata[4:6] not in ALLOWED_DATA_LINES:
+        if rawdata[4] == 'P':
+            if rawdata[4]+rawdata[12] not in ALLOWED_DATA_LINES:
+                continue
+        elif rawdata[4:6] not in ALLOWED_DATA_LINES:
             continue
 
+
         this = CIFPLine(rawdata, conn)
-        #print(rawdata)  # DEBUG
-        if this.already_exists() is True:
-            logging.warning('%s', rawdata)
-            logging.warning('%s already exists in database table %s\n',
-                            this.hingeValue, this.table_name)
-            continue
+        # print(rawdata)  # DEBUG
+        # if this.already_exists() is True:
+        #     logging.warning('%s', rawdata)
+        #     logging.warning('%s already exists in database table %s\n',
+        #                     this.hingeValue, this.table_name)
+        #     continue
         # Now handle the line since it's "new"
         this.record_line()
 
@@ -60,4 +64,5 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
         #     k = 0
         #     break  # debug
 
+conn.commit()
 conn.close()

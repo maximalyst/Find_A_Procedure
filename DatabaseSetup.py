@@ -47,11 +47,18 @@ def table_define(connection):
                                ('L',), ('S',), ('V',), ('W',), ('X',)]
     ILS_CATS = [('0',), ('1',), ('2',), ('3',), ('I',), ('L',), ('A',), ('S',),
                 ('F',)]
-    WAYPOINT_TYPE1 = [' ', 'A', 'C', 'I', 'M', 'N', 'O', 'R', 'U', 'V', 'W']
-    WAYPOINT_TYPE2 = [' ', 'A', 'B', 'C', 'D', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-                      'N', 'O', 'P', 'R', 'S', 'U', 'V', 'W']
-    WAYPOINT_TYPE3 = [' ', 'D', 'E', 'F', 'Z', 'G']
-    TIME_ZONES = []  # TODO: page 223
+    WAYPOINT_TYPE1 = [(' ',), ('A',), ('C',), ('I',), ('M',), ('N',), ('O',), ('R',), ('U',), ('V',), ('W',)]
+    WAYPOINT_TYPE2 = [(' ',), ('A',), ('B',), ('C',), ('D',), ('F',), ('G',), ('H',), ('I',), ('J',), ('K',),
+                      ('L',), ('M',), ('N',), ('O',), ('P',), ('R',), ('S',), ('U',), ('V',), ('W',)]
+    WAYPOINT_TYPE3 = [(' ',), ('D',), ('E',), ('F',), ('Z',), ('G',)]
+    SSA_DESCRIP1 = [(' ',), ('A',), ('E',), ('F',), ('G',), ('H',), ('N',), ('P',), ('R',), ('T',), ('V',)]
+    SSA_DESCRIP2 = [(' ',), ('B',), ('E',), ('U',), ('Y',)]
+    SSA_DESCRIP3 = [(' ',), ('A',), ('B',), ('C',), ('G',), ('M',), ('R',), ('S',)]
+    SSA_DESCRIP4 = [(' ',), ('A',), ('B',), ('C',), ('D',), ('E',), ('F',), ('G',),
+                    ('H',), ('I',), ('M',), ('N',), ('P',)]
+    TIME_ZONES = ['Z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
+                  'L', 'M', '1', '2', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+                  'U', 'V', 'W', 'X', 'Y']
 
     # PATH_TYPES = [('AF',),('CA',),('CD',),('CF',),('CI',),('CR',),('DF',),('FA',),('FC',),('FD',),
     #               ('FM',),('HA',),('HF',),('HM',),('IF',),('PI',),('RF',),('TF',),('VA',),('VD',),
@@ -224,6 +231,7 @@ def table_define(connection):
         IATAcode_id     INTEGER,
         speedLimitAltitude TEXT,
         --longestRunway TEXT,
+        --longestSurface INTEGER,
         hasIFR_id       INTEGER,
         magneticVariation TEXT,
         elevation       TEXT,
@@ -231,7 +239,7 @@ def table_define(connection):
         recommendedNavaid_id INTEGER,
         recommendedNavaidGeoIcao_id INTEGER,
         publicOrMilitary_id INTEGER,
-        timeZone_id     INTEGER,
+        timeZone        TEXT,
         DST_id          INTEGER,
         --magOrTrue_id  INTEGER,
         areaCode_id     INTEGER,
@@ -269,7 +277,10 @@ def table_define(connection):
         fixIcao_id  INTEGER,
         fixSectionCode_id    INTEGER,
         fixSubsectionCode_id INTEGER,
-        descriptionCode_id   INTEGER,
+        descriptionCode1_id   INTEGER,
+        descriptionCode2_id   INTEGER,
+        descriptionCode3_id   INTEGER,
+        descriptionCode4_id   INTEGER,
         recommendedNavaid_id INTEGER,
         recommendedNavaidGeoIcao_id INTEGER,
         SidStarApproachIdent  TEXT UNIQUE,
@@ -297,7 +308,10 @@ def table_define(connection):
         fixIcao_id  INTEGER,
         fixSectionCode_id    INTEGER,
         fixSubsectionCode_id INTEGER,
-        descriptionCode_id   INTEGER,
+        descriptionCode1_id   INTEGER,
+        descriptionCode2_id   INTEGER,
+        descriptionCode3_id   INTEGER,
+        descriptionCode4_id   INTEGER,
         recommendedNavaid_id INTEGER,
         recommendedNavaidGeoIcao_id INTEGER,
         SidStarApproachIdent  TEXT UNIQUE,
@@ -325,7 +339,10 @@ def table_define(connection):
         fixIcao_id  INTEGER,
         fixSectionCode_id    INTEGER,
         fixSubsectionCode_id INTEGER,
-        descriptionCode_id   INTEGER,
+        descriptionCode1_id   INTEGER,
+        descriptionCode2_id   INTEGER,
+        descriptionCode3_id   INTEGER,
+        descriptionCode4_id   INTEGER,
         recommendedNavaid_id INTEGER,
         recommendedNavaidGeoIcao_id INTEGER,
         SidStarApproachIdent  TEXT UNIQUE,
@@ -555,10 +572,6 @@ def table_define(connection):
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         flag    TEXT UNIQUE
     );
-    CREATE TABLE timeZone (
-        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        zone    TEXT UNIQUE
-    );
     CREATE TABLE DST (
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         flag    TEXT UNIQUE
@@ -631,6 +644,8 @@ def table_define(connection):
     --);
     ''')
 
+    # TODO: change routeTypeSID to include all SID/STAR/Appch types (add approaches)
+
     c.executemany('''INSERT INTO AreaCode (area) VALUES (?);''',
                   KNOWN_AREACODES)
     for each in KNOWN_SECCODES:
@@ -648,21 +663,19 @@ def table_define(connection):
     c.executemany('''INSERT INTO aircraftDesignType (type) VALUES (?);''',
                   [each for each in (list(ascii_uppercase)[:-1] + [' '])])
     c.executemany('''INSERT INTO waypointDescription1 (desc) VALUES (?);''',
-                  [(' ',), ('A',), ('E',), ('F',), ('G',), ('H',), ('N',), ('P',),
-                   ('R',), ('T',), ('V',)])
+                  SSA_DESCRIP1)
     c.executemany('''INSERT INTO waypointDescription2 (desc) VALUES (?);''',
-                  [(' ',), ('B',), ('E',), ('U',), ('Y',)])
+                  SSA_DESCRIP2)
     c.executemany('''INSERT INTO waypointDescription3 (desc) VALUES (?);''',
-                  [(' ',), ('A',), ('B',), ('C',), ('G',), ('M',), ('R',), ('S',)])
+                  SSA_DESCRIP3)
     c.executemany('''INSERT INTO waypointDescription4 (desc) VALUES (?);''',
-                  [each for each in
-                   ([' '] + list(ascii_uppercase)[0:9] + ['M', 'N', 'P'])])
+                  SSA_DESCRIP4)
     c.executemany('''INSERT INTO hasIFR (flag) VALUES (?);''',
                   [('N',), ('Y',)])
     c.executemany('''INSERT INTO publicOrMilitary (flag) VALUES (?);''',
                   [('C',), ('M',), ('P',), ('J',)])
     c.executemany('''INSERT INTO DST (flag) VALUES (?);''',
-                  [('N',), ('Y',)])  # 0 for No, 1 for Yes
+                  [('N',), ('Y',), (' ',)])  # 1 for No, 2 for Yes, allow for blank
     c.executemany('''INSERT INTO routeTypeSID (type) VALUES (?);''',
                   ROUTE_TYPES_SIDS)
     c.executemany('''INSERT INTO routeTypeApproach (type) VALUES (?);''',
@@ -692,8 +705,6 @@ def table_define(connection):
                   ILS_CATS)
     c.executemany('''INSERT INTO IcaoCode (code) VALUES (?)''',
                   ICAO_CODES)
-    c.executemany('''INSERT INTO timeZone (zone) VALUES (?)''',
-                  TIME_ZONES)
 
     # Default blank/null values for certain tables...
     c.execute('INSERT INTO D_ (navaidIdent) VALUES (?)', ('    ', ))

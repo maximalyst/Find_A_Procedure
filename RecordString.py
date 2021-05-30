@@ -91,8 +91,8 @@ class CIFPLine:
         self.fileRecord = self.data[123:128]
         self.fileCycle = self.data[128:]
 
-        if self.data[4:6] not in ['PA', 'PD', 'PE', 'PF', 'PG', 'PI', 'HA', 'HD', 'HE', 'HF']:
-            if self.data[5] == ' ':
+        if self.data[4] not in ['P', 'H']:
+            if self.data[4:6] == 'D ':
                 self.subsection = '_'  # covers D_ (VHF navaid) case
             else:
                 self.subsection = self.data[5]
@@ -111,7 +111,7 @@ class CIFPLine:
             self.airHeli_portIdent = self.data[6:10]
             self.airHeli_GeoIcao = self.data[10:12]
             self.c.execute('INSERT OR IGNORE INTO PA (airHeli_portIdent) VALUES (?);',
-                           (self.airHeli_portIdent, ))
+                           (self.airHeli_portIdent,))
 
         if self.table_name in ['D_', 'DB', 'PN', 'EA', 'PC', 'PA', 'HA', 'HC',
                                'PG', 'PI', 'UR', 'UC']:
@@ -138,7 +138,7 @@ class CIFPLine:
                 else:
                     self.DMEident = self.data[51:55]
                 self.c.execute('INSERT OR IGNORE INTO DMEident (name) VALUES (?);',
-                               (self.DMEident, ))
+                               (self.DMEident,))
                 self.DMElatitude = self.data[55:64]
                 self.DMElongitude = self.data[64:74]
 
@@ -159,6 +159,8 @@ class CIFPLine:
                 self.longRunwaySurface = self.data[31]
             else:
                 self.heliportType = self.data[31]
+            self.c.execute('INSERT OR IGNORE INTO IATAcode (code) VALUES (?);',
+                           (self.IATAcode,))
 
         if self.table_name in ['ER', 'PD', 'PE', 'PF', 'HD', 'HE', 'HF']:
             self.fixIdent = self.data[29:34]
@@ -179,14 +181,16 @@ class CIFPLine:
                 self.routeQual1 = self.data[118]
                 self.routeQual2 = self.data[119]
                 self.routeQual3 = self.data[120]
+                self.recommendedNavaidSection = self.data[78]
+                self.recommendedNavaidSubsection = self.data[79]
             else:
                 self.routeIdent = self.data[13:18]
                 self.sequenceNumber = self.data[25:29]
             self.c.execute('''INSERT OR IGNORE INTO fixIdent (name) VALUES (?);''',
-                           (self.fixIdent, ))
+                           (self.fixIdent,))
             # Just in case rec. navaid isn't in our D_ table (It's guaranteed to be VHF per spec):
             self.c.execute('''INSERT OR IGNORE INTO D_ (navaidIdent) VALUES (?)''',
-                           (self.recommendedNavaid, ))
+                           (self.recommendedNavaid,))
 
         if self.table_name in ['EA', 'PC', 'HC']:
             self.waypointIdent = self.data[13:18]
@@ -215,27 +219,53 @@ class CIFPLine:
             self.localizerFreq = self.data[22:27]
             self.runwayIdent = self.data[27:32]
 
-        if self.table_name in ['D_', 'DB', 'PN']:
-            self.hinge = 'navaidIdent'
-            self.hingeValue = self.navaidIdent
-        if self.table_name in ['EA', 'PC']:
-            self.hinge = 'waypointIdent'
-            self.hingeValue = self.waypointIdent
-        if self.table_name in ['ER']:
-            self.hinge = 'routeIdent'
-            self.hingeValue = self.routeIdent
-        if self.table_name in ['PA']:
-            self.hinge = 'airHeli_portIdent'
-            self.hingeValue = self.airHeli_portIdent
-        if self.table_name in ['PD', 'PE', 'PF', 'HD', 'HE', 'HF']: #  heliports aren't in MVP, but this is where SID/STAR/Appch will go eventually
-            self.hinge = 'SidStarApproachIdent'
-            self.hingeValue = self.SidStarApproachIdent
-        if self.table_name in ['PI']:
-            self.hinge = 'localizerIdent'
-            self.hingeValue = self.localizerIdent
+        self.hinge = self._get_hinge(self.table_name)[0]
+        self.hingeValue = self._get_hinge(self.table_name)[1]
+        # if self.table_name in ['D_', 'DB', 'PN']:
+        #     self.hinge = 'navaidIdent'
+        #     self.hingeValue = self.navaidIdent
+        # if self.table_name in ['EA', 'PC']:
+        #     self.hinge = 'waypointIdent'
+        #     self.hingeValue = self.waypointIdent
+        # if self.table_name in ['ER']:
+        #     self.hinge = 'routeIdent'
+        #     self.hingeValue = self.routeIdent
+        # if self.table_name in ['PA']:
+        #     self.hinge = 'airHeli_portIdent'
+        #     self.hingeValue = self.airHeli_portIdent
+        # if self.table_name in ['PD', 'PE', 'PF', 'HD', 'HE',
+        #                        'HF']:  # heliports aren't in MVP, but this is where SID/STAR/Appch will go eventually
+        #     self.hinge = 'SidStarApproachIdent'
+        #     self.hingeValue = self.SidStarApproachIdent
+        # if self.table_name in ['PI']:
+        #     self.hinge = 'localizerIdent'
+        #     self.hingeValue = self.localizerIdent
         # TODO: Figure out runway (PG) situation?
 
         self.connection.commit()
+
+    def _get_hinge(self, _table_name):
+        if _table_name in ['D_', 'DB', 'PN']:
+            _hinge = 'navaidIdent'
+            _hingeValue = self.navaidIdent
+        if _table_name in ['EA', 'PC']:
+            _hinge = 'waypointIdent'
+            _hingeValue = self.waypointIdent
+        if _table_name in ['ER']:
+            _hinge = 'routeIdent'
+            _hingeValue = self.routeIdent
+        if _table_name in ['PA']:
+            _hinge = 'airHeli_portIdent'
+            _hingeValue = self.airHeli_portIdent
+        if _table_name in ['PD', 'PE', 'PF', 'HD', 'HE',
+                               'HF']:  # heliports aren't in MVP, but this is where SID/STAR/Appch will go eventually
+            _hinge = 'SidStarApproachIdent'
+            _hingeValue = self.SidStarApproachIdent
+        if _table_name in ['PI']:
+            _hinge = 'localizerIdent'
+            _hingeValue = self.localizerIdent
+
+        return _hinge, _hingeValue
 
     def already_exists(self):
         self.c.execute(Template('''SELECT id FROM $table WHERE $hinge = '''
@@ -270,16 +300,20 @@ class CIFPLine:
                         _primary_matcher(self.table_name), _primary_key))
         pass
 
-    def _standard_selects(self):
+    def _standard_selects(self, _sec, _subsec):
         self.c.execute('''SELECT rowid FROM SecCode WHERE
                           (section = ?) AND (subsec = ?)''',
-                       (self.section, self.subsection,))
+                       (_sec, _subsec,))
         _sectionCode_id = self.c.fetchone()[0]
+        self.c.execute('''SELECT rowid FROM SecCode WHERE
+                          (section = ?) AND (subsec = ?)''',
+                       (_sec, _subsec,))
+        _subSectionCode_id = self.c.fetchone()[1]
         self.c.execute('SELECT id FROM AreaCode WHERE area = ?',
                        (self.areaCode,))
         _areaCode_id = self.c.fetchone()[0]
 
-        return _sectionCode_id, _areaCode_id
+        return _sectionCode_id, _areaCode_id, _subSectionCode_id
 
     def navaidIdent_line(self):  # D_, DB, and PN lines
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
@@ -306,8 +340,8 @@ class CIFPLine:
         self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
                        (self.airHeli_portIdent,))
         airHeli_portIdent_id = self.c.fetchone()[0]
-        sectionCode_id = self._standard_selects()[0]
-        areaCode_id = self._standard_selects()[1]
+        sectionCode_id = self._standard_selects(self.section, self.subsection)[0]
+        areaCode_id = self._standard_selects(self.section, self.subsection)[1]
         self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
                                      navaidIdent,
                                      latitude,
@@ -366,8 +400,8 @@ class CIFPLine:
         self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
                        (self.airHeli_portIdent,))
         airHeli_portIdent_id = self.c.fetchone()[0]
-        sectionCode_id = self._standard_selects()[0]
-        areaCode_id = self._standard_selects()[1]
+        sectionCode_id = self._standard_selects(self.section, self.subsection)[0]
+        areaCode_id = self._standard_selects(self.section, self.subsection)[1]
         self.c.execute('''INSERT OR IGNORE INTO EA (
                                 waypointIdent,
                                 waypointIcao_id,
@@ -418,10 +452,10 @@ class CIFPLine:
                        (self.descriptionCode[3],))
         waypointDescription4_id = self.c.fetchone()[0]
         self.c.execute('SELECT id FROM D_ WHERE navaidIdent = ?',
-                       (self.recommendedNavaid, ))
+                       (self.recommendedNavaid,))
         recommendedNavaid_id = self.c.fetchone()[0]
-        sectionCode_id = self._standard_selects()[0]
-        areaCode_id = self._standard_selects()[1]
+        sectionCode_id = self._standard_selects(self.section, self.subsection)[0]
+        areaCode_id = self._standard_selects(self.section, self.subsection)[1]
         self.c.execute('''INSERT OR IGNORE INTO ER (
                                 routeIdent,
                                 sequenceNumber,
@@ -445,33 +479,30 @@ class CIFPLine:
                         recommendedNavaidGeoIcao_id, areaCode_id, sectionCode_id, self.fileRecord,
                         self.fileCycle))
 
-    def airHeli_portIdent_line(self, connection):  # PA and HA lines
+    def airHeli_portIdent_line(self):  # PA and HA lines
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.airHeli_GeoIcao,))
         airHeli_GeoIcao_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
-                       (self.airHeli_portIdent,))
-        airHeli_portIdent_id = self.c.fetchone()[0]
         self.c.execute('SELECT id FROM hasIFR WHERE flag = ?',
                        (self.hasIFR,))
         hasIFR_id = self.c.fetchone()[0]
         self.c.execute('SELECT id FROM D_ WHERE navaidIdent = ?',
-                       (self.recommendedNavaid, ))
+                       (self.recommendedNavaid,))
         recommendedNavaid_id = self.c.fetchone()[0]
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
                        (self.recommendedNavaidGeoIcao,))
         recommendedNavaidGeoIcao_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM publicOrMilitary WHERE name = ?',
+        self.c.execute('SELECT id FROM publicOrMilitary WHERE flag = ?',
                        (self.publicOrMilitary,))
         publicOrMilitary_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM timeZone WHERE zone = ?',
-                       (self.timeZone,))
-        timeZone_id = self.c.fetchone()[0]
         self.c.execute('SELECT id FROM DST WHERE flag = ?',
                        (self.DST,))
         DST_id = self.c.fetchone()[0]
-        sectionCode_id = self._standard_selects()[0]
-        areaCode_id = self._standard_selects()[1]
+        self.c.execute('SELECT id FROM IATAcode WHERE code = ?',
+                       (self.IATAcode,))
+        IATAcode_id = self.c.fetchone()[0]
+        sectionCode_id = self._standard_selects(self.section, self.subsection)[0]
+        areaCode_id = self._standard_selects(self.section, self.subsection)[1]
         if self.table_name == 'PA':
             # var1 = 'longestRunway'  # inputting these maybe later
             # var2 = 'longRwySfcCode'
@@ -482,45 +513,126 @@ class CIFPLine:
             # var2 = 'heliType'
             # TODO: finish this area
             pass
-        self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
-                                airHeli_portIdent,
-                                airHeli_GeoIcao_id,
-                                latitude,
-                                longitude,
-                                featureName,
-                                IATAcode_id,
-                                speedLimitAltitude,
-                                hasIFR_id,
-                                magneticVariation,
-                                elevation,
-                                speedLimit,
-                                recommendedNavaid_id,
-                                recommendedNavaidGeoIcao_id
-                                publicOrMilitary_id,
-                                timeZone_id,
-                                DST_id,
-                                areaCode_id,
-                                sectionCode_id,
-                                file_rec,
-                                cycle_date)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
-                       (airHeli_portIdent_id, airHeli_GeoIcao_id, self.latitude,
+        # We need to UPDATE instead of insert because we already added the 4-char name earlier
+        self.c.execute('UPDATE ' + self.table_name + '''
+                        SET airHeli_GeoIcao_id = (?),
+                            latitude = (?),
+                            longitude = (?),
+                            featureName = (?),
+                            IATAcode_id = (?),
+                            speedLimitAltitude = (?),
+                            hasIFR_id = (?),
+                            magneticVariation = (?),
+                            elevation = (?),
+                            speedLimit = (?),
+                            recommendedNavaid_id = (?),
+                            recommendedNavaidGeoIcao_id = (?),
+                            publicOrMilitary_id = (?),
+                            timeZone = (?),
+                            DST_id = (?),
+                            areaCode_id = (?),
+                            sectionCode_id = (?),
+                            file_rec = (?),
+                            cycle_date = (?)
+                        WHERE airHeli_portIdent = (?);''',
+                       (airHeli_GeoIcao_id, self.latitude,
                         self.longitude, self.featureName, IATAcode_id, self.speedLimitAltitude,
                         hasIFR_id, self.magneticVariation, self.elevation, self.speedLimit,
                         recommendedNavaid_id, recommendedNavaidGeoIcao_id, publicOrMilitary_id,
-                        timeZone_id, DST_id, areaCode_id, sectionCode_id, self.fileRecord,
-                        self.fileCycle))
+                        self.timeZone, DST_id, areaCode_id, sectionCode_id, self.fileRecord,
+                        self.fileCycle, self.airHeli_portIdent))
         if self.table_name == 'PA':
-            # insert other airport-specific values
+            # TODO: future expansion
+            # self.c.execute('''UPDATE PA
+            #                   SET longestRunway = (?),
+            #                       longestSurface = (?)
+            #                   WHERE airHeli_portIdent = (?);''',
+            #                (self.longestRunway, self.longRunwaySurface, self.airHeli_portIdent))
             pass
         else:
-            # insert other heliport values
+            # insert other heliport values (Heliport Type)
             pass
 
     def SidStarApproachIdent_line(self, connection):  # PD, PE, PF (and H_) lines
-        pass
+        self.c.execute(Template('''SELECT id FROM $table WHERE $hinge = (?)''')
+                       .substitute(table=self.fixSectionCode + self.fixSubsectionCode,
+                                   hinge=self.hinge),
+                       (self.fixIdent,))
+        fixIdent_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
+                       (self.fixIcao,))
+        fixIcao_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
+                       (self.airHeli_GeoIcao,))
+        airHeli_GeoIcao_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
+                       (self.airHeli_portIdent,))
+        airHeli_PortIdent_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM waypointDescription1 WHERE desc = ?',
+                       (self.descriptionCode[0],))
+        descriptionCode1_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM waypointDescription2 WHERE desc = ?',
+                       (self.descriptionCode[1],))
+        descriptionCode2_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM waypointDescription3 WHERE desc = ?',
+                       (self.descriptionCode[2],))
+        descriptionCode3_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM waypointDescription4 WHERE desc = ?',
+                       (self.descriptionCode[3],))
+        descriptionCode4_id = self.c.fetchone()[0]
+        self.c.execute(Template('''SELECT id FROM $table WHERE $hinge = (?)''')
+                       .substitute(table=self.recommendedNavaidSection + self.recommendedNavaidSubsection,
+                                   hinge=self._get_hinge(self.recommendedNavaidSection +
+                                                         self.recommendedNavaidSubsection)),
+                       (self.fixIdent,))
+        recommendedNavaid_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
+                       (self.recommendedNavaidGeoIcao,))
+        recommendedNavaidGeoIcao_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM routeTypeSID WHERE type = ?',
+                       (self.routeType,))
+        routeTypeSID_id = self.c.fetchone()[0]
+        sectionCode_id = self._standard_selects(self.section, self.subsection)[0]
+        areaCode_id = self._standard_selects(self.section, self.subsection)[1]
+        fixSectionCode_id = self._standard_selects(self.section, self.subsection)[0]
+        fixSubsectionCode_id = self._standard_selects(self.section, self.subsection)[2]
+        self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
+                            airHeli_portIdent_id,
+                            airHeli_GeoIcao_id,
+                            fixIdent_id,
+                            fixIcao_id,
+                            fixSectionCode_id,
+                            fixSubsectionCode_id,
+                            descriptionCode1_id,
+                            descriptionCode2_id,
+                            descriptionCode3_id,
+                            descriptionCode4_id,
+                            recommendedNavaid_id,
+                            recommendedNavaidGeoIcao_id,
+                            SidStarApproachIdent,
+                            routeTypeSID_id,
+                            transitionIdent_id,
+                            aircraftDesignType_id,
+                            sequenceNumber,
+                            speedLimit,
+                            speedLimitDescription_id,
+                            routeSIDQual1_id,
+                            routeSIDQual2_id,
+                            routeSIDQual3_id,
+                            areaCode_id,
+                            sectionCode_id,,
+                            file_rec,
+                            cycle_date)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
+                       (airHeli_PortIdent_id, airHeli_GeoIcao_id, fixIdent_id, fixIcao_id,
+                        fixSectionCode_id, fixSubsectionCode_id, descriptionCode1_id,
+                        descriptionCode2_id, descriptionCode3_id, descriptionCode4_id,
+                        recommendedNavaid_id, recommendedNavaidGeoIcao_id, self.SidStarApproachIdent,
+                        routeTypeSID_id, transitionIdent_id, aircraftDesignType_id,
+                        self.sequenceNumber, self.speedLimit, speedLimitDescription_id,
+                        routeSIDQual1_id, routeSIDQual2_id, routeSIDQual3_id, areaCode_id,
+                        sectionCode_id, self.fileRecord, self.fileCycle))
 
     def localizerIdent_line(self, connection):  # PI lines
         pass
-
