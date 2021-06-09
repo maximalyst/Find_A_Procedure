@@ -303,17 +303,13 @@ class CIFPLine:
     def _standard_selects(self, _sec, _subsec):
         self.c.execute('''SELECT rowid FROM SecCode WHERE
                           (section = ?) AND (subsec = ?)''',
-                       (_sec, _subsec,))
+                       (_sec, _subsec))
         _sectionCode_id = self.c.fetchone()[0]
-        self.c.execute('''SELECT rowid FROM SecCode WHERE
-                          (section = ?) AND (subsec = ?)''',
-                       (_sec, _subsec,))
-        _subSectionCode_id = self.c.fetchone()[1]
         self.c.execute('SELECT id FROM AreaCode WHERE area = ?',
                        (self.areaCode,))
         _areaCode_id = self.c.fetchone()[0]
 
-        return _sectionCode_id, _areaCode_id, _subSectionCode_id
+        return _sectionCode_id, _areaCode_id
 
     def navaidIdent_line(self):  # D_, DB, and PN lines
         self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
@@ -559,25 +555,25 @@ class CIFPLine:
                                    hinge=self.hinge),
                        (self.fixIdent,))
         fixIdent_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = (?)',
                        (self.fixIcao,))
         fixIcao_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = (?)',
                        (self.airHeli_GeoIcao,))
         airHeli_GeoIcao_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = ?',
+        self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = (?)',
                        (self.airHeli_portIdent,))
         airHeli_PortIdent_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM waypointDescription1 WHERE desc = ?',
+        self.c.execute('SELECT id FROM waypointDescription1 WHERE desc = (?)',
                        (self.descriptionCode[0],))
         descriptionCode1_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM waypointDescription2 WHERE desc = ?',
+        self.c.execute('SELECT id FROM waypointDescription2 WHERE desc = (?)',
                        (self.descriptionCode[1],))
         descriptionCode2_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM waypointDescription3 WHERE desc = ?',
+        self.c.execute('SELECT id FROM waypointDescription3 WHERE desc = (?)',
                        (self.descriptionCode[2],))
         descriptionCode3_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM waypointDescription4 WHERE desc = ?',
+        self.c.execute('SELECT id FROM waypointDescription4 WHERE desc = (?)',
                        (self.descriptionCode[3],))
         descriptionCode4_id = self.c.fetchone()[0]
         self.c.execute(Template('''SELECT id FROM $table WHERE $hinge = (?)''')
@@ -586,23 +582,58 @@ class CIFPLine:
                                                          self.recommendedNavaidSubsection)),
                        (self.fixIdent,))
         recommendedNavaid_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM IcaoCode WHERE code = ?',
+        self.c.execute('SELECT id FROM IcaoCode WHERE code = (?)',
                        (self.recommendedNavaidGeoIcao,))
         recommendedNavaidGeoIcao_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM routeTypeSID WHERE type = ?',
+        self.c.execute('SELECT id FROM routeTypeSID WHERE type = (?)',
                        (self.routeType,))
         routeTypeSID_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM aircraftDesignType WHERE type = (?)',
+                       (self.aircraftDesignTypes,))
+        aircraftDesignType_id = self.c.fetchone()[0]
+        self.c.execute('SELECT id FROM speedLimitDescription WHERE descrip = (?)',
+                       (self.speedLimitDescription,))
+        speedLimitDescription_id = self.c.fetchone()[0]
+        if self.table_name == 'PD':
+            self.c.execute('SELECT id FROM routeSIDQual1 WHERE qual = (?)',
+                           (self.routeQual1,))
+            routeQual1_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM routeSIDQual2 WHERE qual = (?)',
+                           (self.routeQual2,))
+            routeQual2_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM routeSIDQual3 WHERE qual = (?)',
+                           (self.routeQual3,))
+            routeQual3_id = self.c.fetchone()[0]
+        if self.table_name == 'PE':
+            self.c.execute('SELECT id FROM routeSTARQual1 WHERE qual = (?)',
+                           (self.routeQual1,))
+            routeQual1_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM routeSTARQual2 WHERE qual = (?)',
+                           (self.routeQual2,))
+            routeQual2_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM routeSTARQual3 WHERE qual = (?)',
+                           (self.routeQual3,))
+            routeQual3_id = self.c.fetchone()[0]
+        if self.table_name == 'PF':
+            self.c.execute('SELECT id FROM routeAppchQual1 WHERE qual = (?)',
+                           (self.routeQual1,))
+            routeQual1_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM routeAppchQual2 WHERE qual = (?)',
+                           (self.routeQual2,))
+            routeQual2_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM routeAppchQual3 WHERE qual = (?)',
+                           (self.routeQual3,))
+            routeQual3_id = self.c.fetchone()[0]
         sectionCode_id = self._standard_selects(self.section, self.subsection)[0]
         areaCode_id = self._standard_selects(self.section, self.subsection)[1]
         fixSectionCode_id = self._standard_selects(self.section, self.subsection)[0]
-        fixSubsectionCode_id = self._standard_selects(self.section, self.subsection)[2]
+        # fixSubsectionCode_id = self._standard_selects(self.section, self.subsection)[2]
         self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
                             airHeli_portIdent_id,
                             airHeli_GeoIcao_id,
                             fixIdent_id,
                             fixIcao_id,
                             fixSectionCode_id,
-                            fixSubsectionCode_id,
                             descriptionCode1_id,
                             descriptionCode2_id,
                             descriptionCode3_id,
@@ -611,14 +642,14 @@ class CIFPLine:
                             recommendedNavaidGeoIcao_id,
                             SidStarApproachIdent,
                             routeTypeSID_id,
-                            transitionIdent_id,
+                            transitionIdent,
                             aircraftDesignType_id,
                             sequenceNumber,
                             speedLimit,
                             speedLimitDescription_id,
-                            routeSIDQual1_id,
-                            routeSIDQual2_id,
-                            routeSIDQual3_id,
+                            routeQual1_id,
+                            routeQual2_id,
+                            routeQual3_id,
                             areaCode_id,
                             sectionCode_id,,
                             file_rec,
@@ -626,12 +657,12 @@ class CIFPLine:
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
                        (airHeli_PortIdent_id, airHeli_GeoIcao_id, fixIdent_id, fixIcao_id,
-                        fixSectionCode_id, fixSubsectionCode_id, descriptionCode1_id,
+                        fixSectionCode_id, descriptionCode1_id,
                         descriptionCode2_id, descriptionCode3_id, descriptionCode4_id,
                         recommendedNavaid_id, recommendedNavaidGeoIcao_id, self.SidStarApproachIdent,
-                        routeTypeSID_id, transitionIdent_id, aircraftDesignType_id,
+                        routeTypeSID_id, self.transitionIdent, aircraftDesignType_id,
                         self.sequenceNumber, self.speedLimit, speedLimitDescription_id,
-                        routeSIDQual1_id, routeSIDQual2_id, routeSIDQual3_id, areaCode_id,
+                        routeQual1_id, routeQual2_id, routeQual3_id, areaCode_id,
                         sectionCode_id, self.fileRecord, self.fileCycle))
 
     def localizerIdent_line(self, connection):  # PI lines
