@@ -5,8 +5,10 @@ import logging
 from RecordString import CIFPLine
 
 # Temporary things I'm only allowing for MVP version
-ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
-                      'PA', 'PD', 'PE', 'PF']  #, 'PG', 'PI']
+# ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
+#                       'PA', 'PD', 'PE', 'PF']  #, 'PG', 'PI']
+ALLOWED_DATA_LINES = ['PD', 'PE', 'PF']
+ALLOWED_COUNTRY = 'USA'  # gonna skip Canada and Pacific lines...
 
 if os.path.exists('CIFP_parse.sqlite'):
     os.remove('CIFP_parse.sqlite')
@@ -21,6 +23,7 @@ DatabaseSetup.table_define(conn)
 
 #############################
 k = 0  # counter for commits
+flag = 0  # counter for errors
 
 # with open('./Private_Files/D_example.txt', 'r') as fh:
 with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
@@ -43,11 +46,15 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
         rawdata = a.rstrip().upper()
         # In this version we're only dealing with certain datatypes
         if rawdata[4] == 'P':
-            if rawdata[4]+rawdata[12] not in ALLOWED_DATA_LINES:
+            if rawdata[4] + rawdata[12] not in ALLOWED_DATA_LINES:
                 continue
         elif rawdata[4:6] not in ALLOWED_DATA_LINES:
             continue
 
+        if rawdata[1:4] == ALLOWED_COUNTRY:
+            pass
+        else:
+            continue
 
         this = CIFPLine(rawdata, conn)
         print(rawdata)  # DEBUG
@@ -57,7 +64,11 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
         #                     this.hingeValue, this.table_name)
         #     continue
         # Now handle the line since it's "new"
-        this.record_line()
+        try:
+            this.record_line()
+        except:
+            print("oops on that line")
+            flag = flag + 1
 
         # if k == 10:
         #     conn.commit()
@@ -66,3 +77,4 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
 
 conn.commit()
 conn.close()
+print('Done with', flag, 'errors')

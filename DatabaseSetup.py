@@ -25,27 +25,27 @@ def table_define(connection):
     # ROUTE_TYPES_RTE_QUAL2 = [('R',),('P',),('T',)]
     # ROUTE_TYPES_RTE_QUAL3 = [('W',),('Z',),('Y',),('X',),('B',),('P',),('C',),('D',),
     #     ('E',),('A',),('G',),('U',),('V',),('N',)]
-    ROUTE_TYPES_SIDS = [('0',), ('1',), ('2',), ('3',), ('T',), ('V',)]
-    ROUTE_TYPES_SIDQUAL1 = [('D',), ('G',), ('R',), ('H',), ('P',)]
-    ROUTE_TYPES_SIDQUAL2 = [('D',), ('E',), ('F',), ('G',), ('W',), ('X',)]
-    ROUTE_TYPES_SIDQUAL3 = [('Z',), ('Y',), ('X',), ('B',), ('P',), ('D',),
-                            ('E',), ('F',),
-                            ('A',), ('G',), ('M',), ('U',), ('V',)]
+    ROUTE_TYPES_SIDS = [(' ',), ('0',), ('1',), ('2',), ('3',), ('4',), ('5',), ('6',), ('F',),
+                        ('M',), ('S',), ('T',), ('V',)]
+    ROUTE_TYPES_SIDQUAL1 = [(' ',), ('D',), ('G',), ('R',), ('H',), ('P',)]
+    ROUTE_TYPES_SIDQUAL2 = [(' ',), ('D',), ('E',), ('F',), ('G',), ('W',), ('X',)]
+    ROUTE_TYPES_SIDQUAL3 = [(' ',), ('Z',), ('Y',), ('X',), ('B',), ('P',), ('D',),
+                            ('E',), ('F',), ('A',), ('G',), ('M',), ('U',), ('V',)]
     # Note: No ROUTE_TYPES_STAR because they are just [1,2,3]
-    ROUTE_TYPES_STARQUAL1 = ROUTE_TYPES_SIDQUAL1
-    ROUTE_TYPES_STARQUAL2 = [('D',), ('E',), ('F',), ('G',)]
+    # Fun use of Python >3.5 iterables & * operator below...
+    ROUTE_TYPES_STARQUAL1 = [*[(' ',)], *[(str(i),) for i in range(1, 10)], *[('F',), ('M',), ('S',)]]
+    ROUTE_TYPES_STARQUAL2 = ROUTE_TYPES_SIDQUAL2[:-2]
     ROUTE_TYPES_STARQUAL3 = ROUTE_TYPES_SIDQUAL3
-    ROUTE_TYPES_APPCH = [('A',), ('B',), ('D',), ('F',), ('G',), ('H',),
+    ROUTE_TYPES_APPCH = [(' ',), ('A',), ('B',), ('D',), ('F',), ('G',), ('H',),
                          ('I',), ('J',), ('L',),
                          ('M',), ('N',), ('P',), ('Q',), ('R',), ('S',),
                          ('T',), ('U',), ('V',), ('X',), ('Z',)]
-    ROUTE_TYPES_APPCH_QUAL1 = [('D',), ('J',), ('N',), ('P',), ('R',), ('T',),
+    ROUTE_TYPES_APPCH_QUAL1 = [(' ',), ('D',), ('J',), ('N',), ('P',), ('R',), ('T',),
                                ('U',), ('V',), ('W',)]
-    ROUTE_TYPES_APPCH_QUAL2 = [('X',), ('E',), ('H',), ('G',), ('A',), ('F',),
-                               ('B',)]
-    ROUTE_TYPES_APPCH_QUAL3 = [('A',), ('B',), ('E',), ('C',), ('H',), ('I',),
+    ROUTE_TYPES_APPCH_QUAL2 = [(' ',), ('A',), ('B',), ('E',), ('C',), ('H',), ('I',),
                                ('L',), ('S',), ('V',), ('W',), ('X',)]
-    ILS_CATS = [('0',), ('1',), ('2',), ('3',), ('I',), ('L',), ('A',), ('S',),
+    ROUTE_TYPES_APPCH_QUAL3 = [(' ',), ('X',), ('E',), ('H',), ('G',), ('A',), ('F',), ('B',)]
+    ILS_CATS = [(' ',), ('0',), ('1',), ('2',), ('3',), ('I',), ('L',), ('A',), ('S',),
                 ('F',)]
     WAYPOINT_TYPE1 = [(' ',), ('A',), ('C',), ('I',), ('M',), ('N',), ('O',), ('R',), ('U',), ('V',), ('W',)]
     WAYPOINT_TYPE2 = [(' ',), ('A',), ('B',), ('C',), ('D',), ('F',), ('G',), ('H',), ('I',), ('J',), ('K',),
@@ -56,6 +56,10 @@ def table_define(connection):
     SSA_DESCRIP3 = [(' ',), ('A',), ('B',), ('C',), ('G',), ('M',), ('R',), ('S',)]
     SSA_DESCRIP4 = [(' ',), ('A',), ('B',), ('C',), ('D',), ('E',), ('F',), ('G',),
                     ('H',), ('I',), ('M',), ('N',), ('P',)]
+    # Found the following in testing, and not sure what is up--not in ARINC spec
+    SSA_DESCRIP1 = SSA_DESCRIP1 + [('W',)]
+    SSA_DESCRIP2 = SSA_DESCRIP2 + [('A',)]
+    SSA_DESCRIP3 = SSA_DESCRIP3 + [('L',)]
     TIME_ZONES = ['Z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
                   'L', 'M', '1', '2', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
                   'U', 'V', 'W', 'X', 'Y']
@@ -273,10 +277,10 @@ def table_define(connection):
         id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
         airHeli_portIdent_id INTEGER,
         airHeli_GeoIcao_id   INTEGER,
-        fixIdent_id INTEGER,
+        fixIdent_id TEXT, --CHANGE back to INTEGER if this becomes a reference again
         fixIcao_id  INTEGER,
         fixSectionCode_id    INTEGER,
-        fixSubsectionCode_id INTEGER,
+        --fixSubsectionCode_id INTEGER,
         descriptionCode1_id   INTEGER,
         descriptionCode2_id   INTEGER,
         descriptionCode3_id   INTEGER,
@@ -392,7 +396,7 @@ def table_define(connection):
         airHeli_GeoIcao_id INTEGER,
         latitude        TEXT,
         longitude       TEXT,
-        localizerIdent  TEXT UNIQUE,
+        navaidIdent  TEXT UNIQUE, --named this to allow for simplicity in PD/E/F records
         ILScategory_id  INTEGER,
         localizerFreq   INTEGER,
         runwayIdent     TEXT,
@@ -581,7 +585,7 @@ def table_define(connection):
         type    TEXT UNIQUE
     );
     --Don't do "routeTypeSTAR" because routeType for STAR is 1, 2, and 3,
-    --so we do the value directly in the PF table
+    --so we do the value directly in the PE table
     CREATE TABLE routeTypeApproach (
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         type    TEXT UNIQUE
