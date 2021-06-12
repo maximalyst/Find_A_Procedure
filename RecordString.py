@@ -173,6 +173,13 @@ class CIFPLine:
             if self.table_name in ['PD', 'PE', 'PF', 'HD', 'HE', 'HF']:
                 self.SidStarApproachIdent = self.data[13:19]
                 self.routeType = self.data[19]
+                if self.routeType == 'R':
+                    self.LVnavAuth = self.data[51]
+                    self.LVavLevelOfService = self.data[52:62]
+                    self.LnavAuth = self.data[62]
+                    self.LnavLevelOfService = self.data[63:73]
+                    self.RnavFlag = self.data[73]
+                    # Not done here, need to add RNP procedures
                 self.transitionIdent = self.data[20:25]
                 self.aircraftDesignTypes = self.data[25]
                 self.sequenceNumber = self.data[26:29]

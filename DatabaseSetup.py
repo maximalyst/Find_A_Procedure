@@ -60,6 +60,7 @@ def table_define(connection):
     SSA_DESCRIP1 = SSA_DESCRIP1 + [('W',)]
     SSA_DESCRIP2 = SSA_DESCRIP2 + [('A',)]
     SSA_DESCRIP3 = SSA_DESCRIP3 + [('L',)]
+    RNAV_FLAG = [(' ',), ('R',)]
     TIME_ZONES = ['Z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
                   'L', 'M', '1', '2', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
                   'U', 'V', 'W', 'X', 'Y']
@@ -632,11 +633,15 @@ def table_define(connection):
     );
     CREATE TABLE ILScategory (
         id       INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        category TEXT
+        category TEXT UNIQUE
     );
     CREATE TABLE aircraftDesignType (
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         type    TEXT UNIQUE
+    );
+    CREATE TABLE rnavFlag (
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
+        flag    TEXT UNIQUE
     );
 
 
@@ -709,6 +714,8 @@ def table_define(connection):
                   ILS_CATS)
     c.executemany('''INSERT INTO IcaoCode (code) VALUES (?)''',
                   ICAO_CODES)
+    c.executemany('''INSERT INTO rnavFlag (flag) VALUES (?)''',
+                  RNAV_FLAG)
 
     # Default blank/null values for certain tables...
     c.execute('INSERT INTO D_ (navaidIdent) VALUES (?)', ('    ', ))
