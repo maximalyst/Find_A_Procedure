@@ -178,8 +178,15 @@ class CIFPLine:
                     self.LVavLevelOfService = self.data[52:62]
                     self.LnavAuth = self.data[62]
                     self.LnavLevelOfService = self.data[63:73]
-                    self.RnavFlag = self.data[73]
-                    # Not done here, need to add RNP procedures
+                    self.remoteAltimeterFlag = self.data[73]
+                    self.RNPAuth1 = self.data[88]
+                    self.RNPAuth2 = self.data[92]
+                    self.RNPAuth3 = self.data[96]
+                    self.RNPAuth4 = self.data[100]
+                    self.RNPLevelOfService1 = self.data[89:92]
+                    self.RNPLevelOfService2 = self.data[93:96]
+                    self.RNPLevelOfService3 = self.data[97:100]
+                    self.RNPLevelOfService4 = self.data[101:104]
                 self.transitionIdent = self.data[20:25]
                 self.aircraftDesignTypes = self.data[25]
                 self.sequenceNumber = self.data[26:29]
@@ -709,6 +716,19 @@ class CIFPLine:
             routeTypeApproach_id = self.c.fetchone()[0]
             self.c.execute('INSERT INTO PF (routeTypeApproach_id) VALUES (?)',
                            (routeTypeApproach_id,))
+            if self.routeType == 'R':
+                self.c.executemany('SELECT id FROM RNAVAuthorized WHERE flag = (?)',
+                                   [(self.LVnavAuth,), (self.LnavAuth,), (self.RNPAuth1,),
+                                    (self.RNPAuth2,), (self.RNPAuth3,), (self.RNPAuth4,)])
+                LVnavAuth_id = self.c.fetchone()[0]
+                LnavAuth_id = self.c.fetchone()[0]
+                RNPAuth1_id = self.c.fetchone()[0]
+                RNPAuth2_id = self.c.fetchone()[0]
+                RNPAuth3_id = self.c.fetchone()[0]
+                RNPAuth4_id = self.c.fetchone()[0]
+                self.c.execute('SELECT id FROM remoteAltimeterFlag WHERE flag = (?)',
+                               (self.remoteAltimeterFlag,))
+                remoteAltimeterFlag_id = self.c.fetchone()[0]
 
     def localizerIdent_line(self, connection):  # PI lines
         pass

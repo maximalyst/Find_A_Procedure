@@ -60,7 +60,7 @@ def table_define(connection):
     SSA_DESCRIP1 = SSA_DESCRIP1 + [('W',)]
     SSA_DESCRIP2 = SSA_DESCRIP2 + [('A',)]
     SSA_DESCRIP3 = SSA_DESCRIP3 + [('L',)]
-    RNAV_FLAG = [(' ',), ('R',)]
+    REMOTE_ALT_FLAG = [(' ',), ('R',)]
     TIME_ZONES = ['Z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
                   'L', 'M', '1', '2', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
                   'U', 'V', 'W', 'X', 'Y']
@@ -360,6 +360,19 @@ def table_define(connection):
         routeQual1_id INTEGER,
         routeQual2_id INTEGER,
         routeQual3_id INTEGER,
+        LVnavLevelOfService TEXT,
+        LnavLevelOfService  TEXT,
+        remoteAltimeterFlag_id   INTEGER,
+        LVnavAuth_id  INTEGER,
+        LnavAuth_id   INTEGER,
+        RNPAuth1_id   INTEGER,
+        RNPAuth2_id   INTEGER,
+        RNPAuth3_id   INTEGER,
+        RNPAuth4_id   INTEGER,
+        RNPLevelOfService1   INTEGER,
+        RNPLevelOfService2   INTEGER,
+        RNPLevelOfService3   INTEGER,
+        RNPLevelOfService4   INTEGER,
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
         --subsectionCode_id INTEGER,
@@ -639,7 +652,11 @@ def table_define(connection):
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         type    TEXT UNIQUE
     );
-    CREATE TABLE rnavFlag (
+    CREATE TABLE remoteAltimeterFlag (
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
+        flag    TEXT UNIQUE
+    );
+    CREATE TABLE RNAVAuthorized (
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         flag    TEXT UNIQUE
     );
@@ -714,8 +731,10 @@ def table_define(connection):
                   ILS_CATS)
     c.executemany('''INSERT INTO IcaoCode (code) VALUES (?)''',
                   ICAO_CODES)
-    c.executemany('''INSERT INTO rnavFlag (flag) VALUES (?)''',
-                  RNAV_FLAG)
+    c.executemany('''INSERT INTO remoteAltimeterFlag (flag) VALUES (?)''',
+                  REMOTE_ALT_FLAG)
+    c.executemany('''INSERT INTO RNAVAuthorized (flag) VALUES (?)''',
+                  [('N',), ('A',), (' ',)])
 
     # Default blank/null values for certain tables...
     c.execute('INSERT INTO D_ (navaidIdent) VALUES (?)', ('    ', ))
