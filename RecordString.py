@@ -173,9 +173,12 @@ class CIFPLine:
             if self.table_name in ['PD', 'PE', 'PF', 'HD', 'HE', 'HF']:
                 self.SidStarApproachIdent = self.data[13:19]
                 self.routeType = self.data[19]
-                if self.routeType == 'R':
+                # First continuation record to deal with; this might go to
+                # another spot later for "general continuation records"
+                if (self.routeType == 'R') and (self.data[38] != '1') and \
+                        (self.data[39] == 'W' or self.data[39] == 'H'):
                     self.LVnavAuth = self.data[51]
-                    self.LVavLevelOfService = self.data[52:62]
+                    self.LVnavLevelOfService = self.data[52:62]
                     self.LnavAuth = self.data[62]
                     self.LnavLevelOfService = self.data[63:73]
                     self.remoteAltimeterFlag = self.data[73]
@@ -571,164 +574,164 @@ class CIFPLine:
             pass
 
     def SidStarApproachIdent_line(self):  # PD, PE, PF (and H_) lines
-        # The execute statement here is wrong. Trying "self" route, not sure if need to revisit
-        # self.c.execute(Template('''SELECT id FROM $table WHERE $hinge = (?)''')
-        #                .substitute(table=self.table_name, hinge=self.hinge),
-        #                (self.fixIdent,))
-        # fixIdent_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM IcaoCode WHERE code = (?)',
-                       (self.fixIcao,))
-        fixIcao_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM IcaoCode WHERE code = (?)',
-                       (self.airHeli_GeoIcao,))
-        airHeli_GeoIcao_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = (?)',
-                       (self.airHeli_portIdent,))
-        airHeli_PortIdent_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM waypointDescription1 WHERE desc = (?)',
-                       (self.descriptionCode[0],))
-        descriptionCode1_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM waypointDescription2 WHERE desc = (?)',
-                       (self.descriptionCode[1],))
-        descriptionCode2_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM waypointDescription3 WHERE desc = (?)',
-                       (self.descriptionCode[2],))
-        descriptionCode3_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM waypointDescription4 WHERE desc = (?)',
-                       (self.descriptionCode[3],))
-        descriptionCode4_id = self.c.fetchone()[0]
+        if self.data[38] == '1':
+            self.c.execute('SELECT id FROM IcaoCode WHERE code = (?)',
+                           (self.fixIcao,))
+            fixIcao_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM IcaoCode WHERE code = (?)',
+                           (self.airHeli_GeoIcao,))
+            airHeli_GeoIcao_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM PA WHERE airHeli_portIdent = (?)',
+                           (self.airHeli_portIdent,))
+            airHeli_PortIdent_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM waypointDescription1 WHERE desc = (?)',
+                           (self.descriptionCode[0],))
+            descriptionCode1_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM waypointDescription2 WHERE desc = (?)',
+                           (self.descriptionCode[1],))
+            descriptionCode2_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM waypointDescription3 WHERE desc = (?)',
+                           (self.descriptionCode[2],))
+            descriptionCode3_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM waypointDescription4 WHERE desc = (?)',
+                           (self.descriptionCode[3],))
+            descriptionCode4_id = self.c.fetchone()[0]
 
-        # print('Rec. Navaid: '+self.recommendedNavaidSection + self.recommendedNavaidSubsection)
+            # print('Rec. Navaid: '+self.recommendedNavaidSection + self.recommendedNavaidSubsection)
 
-        if self.recommendedNavaid != '    ':
-            self.c.execute(Template('''SELECT id FROM $table WHERE navaidIdent = (?)''').
-                           substitute(table=self.recommendedNavaidSection + self.recommendedNavaidSubsection),
-                           (self.recommendedNavaid,))
-            recommendedNavaid_id = self.c.fetchone()[0]
-        else:
-            recommendedNavaid_id = ' '
+            if self.recommendedNavaid != '    ':
+                self.c.execute(Template('''SELECT id FROM $table WHERE navaidIdent = (?)''').
+                               substitute(table=self.recommendedNavaidSection + self.recommendedNavaidSubsection),
+                               (self.recommendedNavaid,))
+                recommendedNavaid_id = self.c.fetchone()[0]
+            else:
+                recommendedNavaid_id = ' '
 
-        self.c.execute('SELECT id FROM IcaoCode WHERE code = (?)',
-                       (self.recommendedNavaidGeoIcao,))
-        recommendedNavaidGeoIcao_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM aircraftDesignType WHERE type = (?)',
-                       (self.aircraftDesignTypes,))
-        aircraftDesignType_id = self.c.fetchone()[0]
-        self.c.execute('SELECT id FROM speedLimitDescription WHERE descrip = (?)',
-                       (self.speedLimitDescription,))
-        speedLimitDescription_id = self.c.fetchone()[0]
-        if self.table_name == 'PD':
-            _qual_type = 'SID'
-        elif self.table_name == 'PE':
-            _qual_type = 'STAR'
-        else:  # self.table_name == 'PF':
-            _qual_type = 'Appch'
-        self.c.execute(Template('SELECT id FROM $table WHERE qual = (?)')
-                       .substitute(table='route' + _qual_type + 'Qual1'),
-                       (self.routeQual1,))
-        routeQual1_id = self.c.fetchone()[0]
-        self.c.execute(Template('SELECT id FROM $table WHERE qual = (?)')
-                       .substitute(table='route' + _qual_type + 'Qual2'),
-                       (self.routeQual2,))
-        routeQual2_id = self.c.fetchone()[0]
-        self.c.execute(Template('SELECT id FROM $table WHERE qual = (?)')
-                       .substitute(table='route' + _qual_type + 'Qual3'),
-                       (self.routeQual3,))
-        routeQual3_id = self.c.fetchone()[0]
-        # self.c.execute('SELECT id FROM routeSIDQual2 WHERE qual = (?)',
-        #                (self.routeQual2,))
-        # routeQual2_id = self.c.fetchone()[0]
-        # self.c.execute('SELECT id FROM routeSIDQual3 WHERE qual = (?)',
-        #                (self.routeQual3,))
-        # routeQual3_id = self.c.fetchone()[0]
-        # if self.table_name == 'PE':
-        #     self.c.execute('SELECT id FROM routeSTARQual1 WHERE qual = (?)',
-        #                    (self.routeQual1,))
-        #     routeQual1_id = self.c.fetchone()[0]
-        #     self.c.execute('SELECT id FROM routeSTARQual2 WHERE qual = (?)',
-        #                    (self.routeQual2,))
-        #     routeQual2_id = self.c.fetchone()[0]
-        #     self.c.execute('SELECT id FROM routeSTARQual3 WHERE qual = (?)',
-        #                    (self.routeQual3,))
-        #     routeQual3_id = self.c.fetchone()[0]
-        # if self.table_name == 'PF':
-        #     self.c.execute('SELECT id FROM routeAppchQual1 WHERE qual = (?)',
-        #                    (self.routeQual1,))
-        #     routeQual1_id = self.c.fetchone()[0]
-        #     self.c.execute('SELECT id FROM routeAppchQual2 WHERE qual = (?)',
-        #                    (self.routeQual2,))
-        #     routeQual2_id = self.c.fetchone()[0]
-        #     self.c.execute('SELECT id FROM routeAppchQual3 WHERE qual = (?)',
-        #                    (self.routeQual3,))
-        #     routeQual3_id = self.c.fetchone()[0]
-        sectionCode_id = self._standard_selects(self.section, self.subsection)[0]
-        areaCode_id = self._standard_selects(self.section, self.subsection)[1]
-        fixSectionCode_id = self._standard_selects(self.section, self.subsection)[0]
-        # fixSubsectionCode_id = self._standard_selects(self.section, self.subsection)[2]
-        self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
-                            airHeli_portIdent_id,
-                            airHeli_GeoIcao_id,
-                            fixIdent_id, --NOTE: _id for historical purposes, can be globally changed if this works.
-                            fixIcao_id,
-                            fixSectionCode_id,
-                            descriptionCode1_id,
-                            descriptionCode2_id,
-                            descriptionCode3_id,
-                            descriptionCode4_id,
-                            recommendedNavaid_id,
-                            recommendedNavaidGeoIcao_id,
-                            SidStarApproachIdent,
-                            transitionIdent,
-                            aircraftDesignType_id,
-                            sequenceNumber,
-                            speedLimit,
-                            speedLimitDescription_id,
-                            routeQual1_id,
-                            routeQual2_id,
-                            routeQual3_id,
-                            areaCode_id,
-                            sectionCode_id,
-                            file_rec,
-                            cycle_date)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
-                       (airHeli_PortIdent_id, airHeli_GeoIcao_id, self.fixIdent, fixIcao_id,
-                        fixSectionCode_id, descriptionCode1_id,
-                        descriptionCode2_id, descriptionCode3_id, descriptionCode4_id,
-                        recommendedNavaid_id, recommendedNavaidGeoIcao_id, self.SidStarApproachIdent,
-                        self.transitionIdent, aircraftDesignType_id,
-                        self.sequenceNumber, self.speedLimit, speedLimitDescription_id,
-                        routeQual1_id, routeQual2_id, routeQual3_id, areaCode_id,
-                        sectionCode_id, self.fileRecord, self.fileCycle))
-        if self.table_name == 'PD':
-            self.c.execute('SELECT id FROM routeTypeSID WHERE type = (?)',
-                           (self.routeType,))
-            routeTypeSID_id = self.c.fetchone()[0]
-            self.c.execute('INSERT INTO PD (routeTypeSID_id) VALUES (?)',
-                           (routeTypeSID_id,))
-        if self.table_name == 'PE':
-            self.c.execute('INSERT INTO PE (routeTypeSTAR) VALUES (?)',
-                           (self.routeType,))
-            # Reminder: Doing this since the Types are literally 1-3 already
-        if self.table_name == 'PF':
-            self.c.execute('SELECT id FROM routeTypeApproach WHERE type = (?)',
-                           (self.routeType,))
-            routeTypeApproach_id = self.c.fetchone()[0]
-            self.c.execute('INSERT INTO PF (routeTypeApproach_id) VALUES (?)',
-                           (routeTypeApproach_id,))
-            if self.routeType == 'R':
-                self.c.executemany('SELECT id FROM RNAVAuthorized WHERE flag = (?)',
-                                   [(self.LVnavAuth,), (self.LnavAuth,), (self.RNPAuth1,),
-                                    (self.RNPAuth2,), (self.RNPAuth3,), (self.RNPAuth4,)])
-                LVnavAuth_id = self.c.fetchone()[0]
-                LnavAuth_id = self.c.fetchone()[0]
-                RNPAuth1_id = self.c.fetchone()[0]
-                RNPAuth2_id = self.c.fetchone()[0]
-                RNPAuth3_id = self.c.fetchone()[0]
-                RNPAuth4_id = self.c.fetchone()[0]
-                self.c.execute('SELECT id FROM remoteAltimeterFlag WHERE flag = (?)',
-                               (self.remoteAltimeterFlag,))
-                remoteAltimeterFlag_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM IcaoCode WHERE code = (?)',
+                           (self.recommendedNavaidGeoIcao,))
+            recommendedNavaidGeoIcao_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM aircraftDesignType WHERE type = (?)',
+                           (self.aircraftDesignTypes,))
+            aircraftDesignType_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM speedLimitDescription WHERE descrip = (?)',
+                           (self.speedLimitDescription,))
+            speedLimitDescription_id = self.c.fetchone()[0]
+            if self.table_name == 'PD':
+                _qual_type = 'SID'
+            elif self.table_name == 'PE':
+                _qual_type = 'STAR'
+            else:  # self.table_name == 'PF':
+                _qual_type = 'Appch'
+            self.c.execute(Template('SELECT id FROM $table WHERE qual = (?)')
+                           .substitute(table='route' + _qual_type + 'Qual1'),
+                           (self.routeQual1,))
+            routeQual1_id = self.c.fetchone()[0]
+            self.c.execute(Template('SELECT id FROM $table WHERE qual = (?)')
+                           .substitute(table='route' + _qual_type + 'Qual2'),
+                           (self.routeQual2,))
+            routeQual2_id = self.c.fetchone()[0]
+            self.c.execute(Template('SELECT id FROM $table WHERE qual = (?)')
+                           .substitute(table='route' + _qual_type + 'Qual3'),
+                           (self.routeQual3,))
+            routeQual3_id = self.c.fetchone()[0]
+            sectionCode_id = self._standard_selects(self.section, self.subsection)[0]
+            areaCode_id = self._standard_selects(self.section, self.subsection)[1]
+            fixSectionCode_id = self._standard_selects(self.section, self.subsection)[0]
+            # fixSubsectionCode_id = self._standard_selects(self.section, self.subsection)[2]
+            self.c.execute('INSERT OR IGNORE INTO ' + self.table_name + ''' (
+                                airHeli_portIdent_id,
+                                airHeli_GeoIcao_id,
+                                fixIdent_id, --NOTE: _id for historical purposes, can be globally changed if this works.
+                                fixIcao_id,
+                                fixSectionCode_id,
+                                descriptionCode1_id,
+                                descriptionCode2_id,
+                                descriptionCode3_id,
+                                descriptionCode4_id,
+                                recommendedNavaid_id,
+                                recommendedNavaidGeoIcao_id,
+                                SidStarApproachIdent,
+                                transitionIdent,
+                                aircraftDesignType_id,
+                                sequenceNumber,
+                                speedLimit,
+                                speedLimitDescription_id,
+                                routeQual1_id,
+                                routeQual2_id,
+                                routeQual3_id,
+                                areaCode_id,
+                                sectionCode_id,
+                                file_rec,
+                                cycle_date)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);''',
+                           (airHeli_PortIdent_id, airHeli_GeoIcao_id, self.fixIdent, fixIcao_id,
+                            fixSectionCode_id, descriptionCode1_id,
+                            descriptionCode2_id, descriptionCode3_id, descriptionCode4_id,
+                            recommendedNavaid_id, recommendedNavaidGeoIcao_id, self.SidStarApproachIdent,
+                            self.transitionIdent, aircraftDesignType_id,
+                            self.sequenceNumber, self.speedLimit, speedLimitDescription_id,
+                            routeQual1_id, routeQual2_id, routeQual3_id, areaCode_id,
+                            sectionCode_id, self.fileRecord, self.fileCycle))
+            if self.table_name == 'PD':
+                self.c.execute('SELECT id FROM routeTypeSID WHERE type = (?)',
+                               (self.routeType,))
+                routeTypeSID_id = self.c.fetchone()[0]
+                self.c.execute('INSERT INTO PD (routeTypeSID_id) VALUES (?)',
+                               (routeTypeSID_id,))
+            if self.table_name == 'PE':
+                self.c.execute('INSERT INTO PE (routeTypeSTAR) VALUES (?)',
+                               (self.routeType,))
+                # Reminder: Doing this since the Types are literally 1-3 already
+            if self.table_name == 'PF':
+                self.c.execute('SELECT id FROM routeTypeApproach WHERE type = (?)',
+                               (self.routeType,))
+                routeTypeApproach_id = self.c.fetchone()[0]
+                self.c.execute('INSERT INTO PF (routeTypeApproach_id) VALUES (?)',
+                               (routeTypeApproach_id,))
+        # TODO: Change self.data calls into variable names during __init__
+        if self.table_name == 'PF' and (self.routeType == 'R' or self.routeType == 'H') and \
+                self.data[38] != '1' and self.data[39] == 'W':
+            self.c.execute('SELECT id FROM RNAVAuthorized WHERE flag = (?)',
+                           (self.LVnavAuth,))
+            LVnavAuth_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM RNAVAuthorized WHERE flag = (?)',
+                           (self.LnavAuth,))
+            LnavAuth_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM RNAVAuthorized WHERE flag = (?)',
+                           (self.RNPAuth1,))
+            RNPAuth1_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM RNAVAuthorized WHERE flag = (?)',
+                           (self.RNPAuth2,))
+            RNPAuth2_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM RNAVAuthorized WHERE flag = (?)',
+                           (self.RNPAuth3,))
+            RNPAuth3_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM RNAVAuthorized WHERE flag = (?)',
+                           (self.RNPAuth4,))
+            RNPAuth4_id = self.c.fetchone()[0]
+            self.c.execute('SELECT id FROM remoteAltimeterFlag WHERE flag = (?)',
+                           (self.remoteAltimeterFlag,))
+            remoteAltimeterFlag_id = self.c.fetchone()[0]
+            self.c.execute('''UPDATE PF SET 
+                                    LVnavLevelOfService = (?),
+                                    LnavLevelOfService = (?),
+                                    remoteAltimeterFlag_id = (?),
+                                    LVnavAuth_id = (?),
+                                    LnavAuth_id = (?),
+                                    RNPAuth1_id = (?),
+                                    RNPAuth2_id = (?),
+                                    RNPAuth3_id = (?),
+                                    RNPAuth4_id = (?),
+                                    RNPLevelOfService1 = (?),
+                                    RNPLevelOfService2 = (?),
+                                    RNPLevelOfService3 = (?),
+                                    RNPLevelOfService4 = (?)
+                                  WHERE SidStarApproachIdent = (?)''',
+                           (self.LVnavLevelOfService, self.LnavLevelOfService, remoteAltimeterFlag_id,
+                            LVnavAuth_id, LnavAuth_id, RNPAuth1_id, RNPAuth2_id, RNPAuth3_id, RNPAuth4_id,
+                            self.RNPLevelOfService1, self.RNPLevelOfService2, self.RNPLevelOfService3,
+                            self.RNPLevelOfService4, self.SidStarApproachIdent))
 
     def localizerIdent_line(self, connection):  # PI lines
         pass

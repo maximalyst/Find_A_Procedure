@@ -64,11 +64,12 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
         #                     this.hingeValue, this.table_name)
         #     continue
         # Now handle the line since it's "new"
-        try:
-            this.record_line()
-        except:
-            print("oops on that line")
-            flag = flag + 1
+        # try:
+        this.record_line()
+        # except:
+        #     print("oops on that line")
+        #     logging.error(this.data)
+        #     flag = flag + 1
 
         # if k == 10:
         #     conn.commit()
