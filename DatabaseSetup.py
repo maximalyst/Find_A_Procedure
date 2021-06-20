@@ -40,8 +40,8 @@ def table_define(connection):
                          ('I',), ('J',), ('L',),
                          ('M',), ('N',), ('P',), ('Q',), ('R',), ('S',),
                          ('T',), ('U',), ('V',), ('X',), ('Z',)]
-    ROUTE_TYPES_APPCH_QUAL1 = [(' ',), ('D',), ('J',), ('N',), ('P',), ('R',), ('T',),
-                               ('U',), ('V',), ('W',)]
+    ROUTE_TYPES_APPCH_QUAL1 = [(' ',), ('D',), ('J',), ('N',), ('P',), ('R',),
+                               ('T',), ('U',), ('V',), ('W',)]
     ROUTE_TYPES_APPCH_QUAL2 = [(' ',), ('A',), ('B',), ('E',), ('C',), ('H',), ('I',),
                                ('L',), ('S',), ('V',), ('W',), ('X',)]
     ROUTE_TYPES_APPCH_QUAL3 = [(' ',), ('X',), ('E',), ('H',), ('G',), ('A',), ('F',), ('B',)]
@@ -60,6 +60,8 @@ def table_define(connection):
     SSA_DESCRIP1 = SSA_DESCRIP1 + [('W',)]
     SSA_DESCRIP2 = SSA_DESCRIP2 + [('A',)]
     SSA_DESCRIP3 = SSA_DESCRIP3 + [('L',)]
+    ROUTE_TYPES_APPCH_QUAL1 = ROUTE_TYPES_APPCH_QUAL1 + [('F',)]
+
     REMOTE_ALT_FLAG = [(' ',), ('R',)]
     TIME_ZONES = ['Z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K',
                   'L', 'M', '1', '2', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',

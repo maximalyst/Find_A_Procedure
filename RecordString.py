@@ -83,6 +83,9 @@ def _primary_matcher(_table_name):
 class CIFPLine:
     def __init__(self, data, connection):
         self.data = data
+        # debug
+        if self.data=='SUSAP I23 K5FN23   N      020CSS  K5DB0N  F    IF CSS K5      00000000        DB  + 01700     18000       CSS   K5DB0 NS   046361707':
+            print('pause')
         self.connection = connection
         self.c = self.connection.cursor()
         self.recordType = self.data[0]
@@ -167,16 +170,12 @@ class CIFPLine:
             self.fixIcao = self.data[34:36]
             self.fixSectionCode = self.data[36]
             self.fixSubsectionCode = self.data[37]
-            self.descriptionCode = self.data[39:43]
-            self.recommendedNavaid = self.data[50:54]
-            self.recommendedNavaidGeoIcao = self.data[54:56]
-            if self.table_name in ['PD', 'PE', 'PF', 'HD', 'HE', 'HF']:
+            if self.table_name != 'ER':
                 self.SidStarApproachIdent = self.data[13:19]
                 self.routeType = self.data[19]
                 # First continuation record to deal with; this might go to
                 # another spot later for "general continuation records"
-                if (self.routeType == 'R') and (self.data[38] != '1') and \
-                        (self.data[39] == 'W' or self.data[39] == 'H'):
+                if (self.routeType == 'R' or self.routeType == 'H') and (self.data[38] != '1'):
                     self.LVnavAuth = self.data[51]
                     self.LVnavLevelOfService = self.data[52:62]
                     self.LnavAuth = self.data[62]
@@ -200,17 +199,27 @@ class CIFPLine:
                 self.routeQual3 = self.data[120]
                 self.recommendedNavaidSection = self.data[78]
                 self.recommendedNavaidSubsection = self.data[79]
+                # Need to do the same as earlier, for simplicity:
+                if self.data[78:80] == 'PN':
+                    self.recommendedNavaidSection = 'D'
+                    self.recommendedNavaidSubsection = 'B'
                 if self.recommendedNavaidSubsection == ' ':
                     self.recommendedNavaidSubsection = '_'
                     # For when rec. navaid is VHF navaid ('D ')
             else:
                 self.routeIdent = self.data[13:18]
                 self.sequenceNumber = self.data[25:29]
-            self.c.execute('''INSERT OR IGNORE INTO fixIdent (name) VALUES (?);''',
-                           (self.fixIdent,))
-            # Just in case rec. navaid isn't in our D_ table (It's guaranteed to be VHF per spec):
-            self.c.execute('''INSERT OR IGNORE INTO D_ (navaidIdent) VALUES (?)''',
-                           (self.recommendedNavaid,))
+            if self.table_name == 'ER' or int(self.data[38]) <= 1:
+                self.descriptionCode = self.data[39:43]
+                self.recommendedNavaid = self.data[50:54]
+                self.recommendedNavaidGeoIcao = self.data[54:56]
+                self.c.execute('''INSERT OR IGNORE INTO fixIdent (name) VALUES (?);''',
+                               (self.fixIdent,))
+                if self.recommendedNavaid != '    ':
+                    self.c.execute(Template('''INSERT OR IGNORE INTO $table (navaidIdent) VALUES (?)''').
+                                   substitute(table=self.recommendedNavaidSection +
+                                                    self.recommendedNavaidSubsection),
+                                   (self.recommendedNavaid, ))
 
         if self.table_name in ['EA', 'PC', 'HC']:
             self.waypointIdent = self.data[13:18]
@@ -574,7 +583,7 @@ class CIFPLine:
             pass
 
     def SidStarApproachIdent_line(self):  # PD, PE, PF (and H_) lines
-        if self.data[38] == '1':
+        if int(self.data[38]) <= 1:
             self.c.execute('SELECT id FROM IcaoCode WHERE code = (?)',
                            (self.fixIcao,))
             fixIcao_id = self.c.fetchone()[0]
@@ -603,7 +612,17 @@ class CIFPLine:
                 self.c.execute(Template('''SELECT id FROM $table WHERE navaidIdent = (?)''').
                                substitute(table=self.recommendedNavaidSection + self.recommendedNavaidSubsection),
                                (self.recommendedNavaid,))
+                # try:
                 recommendedNavaid_id = self.c.fetchone()[0]
+                # except TypeError:
+                #     self.c.excute(Template('''INSERT INTO $table (
+                #                                 navaidIdent,
+                #                                 navaidGeoIcao_id,
+                #                                 sectionCode_id)
+                #                               VALUES (?, ?, ?)''').
+                #                   substitute(table=self.),
+                #                   (self.recommendedNavaid, self.recommendedNavaidGeoIcao,
+                #                    self.recommendedNavaidSection + self.recommendedNavaidSubsection))
             else:
                 recommendedNavaid_id = ' '
 

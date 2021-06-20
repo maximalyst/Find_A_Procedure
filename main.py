@@ -5,9 +5,8 @@ import logging
 from RecordString import CIFPLine
 
 # Temporary things I'm only allowing for MVP version
-# ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
-#                       'PA', 'PD', 'PE', 'PF']  #, 'PG', 'PI']
-ALLOWED_DATA_LINES = ['PD', 'PE', 'PF']
+ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
+                      'PA', 'PD', 'PE', 'PF']  #, 'PG', 'PI']
 ALLOWED_COUNTRY = 'USA'  # gonna skip Canada and Pacific lines...
 
 if os.path.exists('CIFP_parse.sqlite'):
@@ -56,8 +55,8 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
         else:
             continue
 
-        this = CIFPLine(rawdata, conn)
         print(rawdata)  # DEBUG
+        this = CIFPLine(rawdata, conn)
         # if this.already_exists() is True:
         #     logging.warning('%s', rawdata)
         #     logging.warning('%s already exists in database table %s\n',
