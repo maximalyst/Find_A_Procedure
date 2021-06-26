@@ -116,11 +116,12 @@ def table_define(connection):
                   ('Y',), ('Z',), ('ZK',), ('ZM',)]
 
     c = connection.cursor()
+    # TODO: Fix navaid uniqueness for NDB's
     c.executescript('''
     --VHF navaids
     CREATE TABLE D_ (
         id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        navaidIdent TEXT UNIQUE,
+        navaid_id INTEGER,
         navaidGeoIcao_id INTEGER,
         airHeli_portIdent_id INTEGER,
         airHeli_GeoIcao_id INTEGER,
@@ -142,10 +143,10 @@ def table_define(connection):
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
-    --Enroute NDB navaids
+    -- NDB navaids
     CREATE TABLE DB (
         id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        navaidIdent TEXT UNIQUE,
+        navaid_id INTEGER,
         navaidGeoIcao_id INTEGER,
         airHeli_portIdent_id INTEGER,
         airHeli_GeoIcao_id INTEGER,
@@ -161,13 +162,14 @@ def table_define(connection):
         areaCode_id     INTEGER,
         sectionCode_id  INTEGER,
         --subsectionCode_id INTEGER,
+        DB_or_PN_id    INTEGER,
         file_rec        INTEGER,
         cycle_date      INTEGER
     );
     --Terminal NDB navaids--copy above table fields
     --CREATE TABLE PN (
     --    id          INTEGER NOT NULL PRIMARY KEY UNIQUE,
-    --    navaidIdent TEXT UNIQUE,
+    --    navaid_id TEXT UNIQUE,
     --    navaidGeoIcao_id INTEGER,
     --    airHeli_portIdent_id INTEGER,
     --    airHeli_GeoIcao_id INTEGER,
@@ -412,7 +414,7 @@ def table_define(connection):
         airHeli_GeoIcao_id INTEGER,
         latitude        TEXT,
         longitude       TEXT,
-        navaidIdent  TEXT UNIQUE, --named this to allow for simplicity in PD/E/F records
+        navaid_id  INTEGER,
         ILScategory_id  INTEGER,
         localizerFreq   INTEGER,
         runwayIdent     TEXT,
@@ -497,6 +499,10 @@ def table_define(connection):
     ''')
     c.executescript('''
     --The following are consistent items in many entries:
+    CREATE TABLE navaid (
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
+        ident   TEXT UNIQUE
+    );
     CREATE TABLE IcaoCode (--2 letter codes
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         code    TEXT UNIQUE
@@ -513,11 +519,11 @@ def table_define(connection):
     );
     CREATE TABLE DMEident (
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        name    TEXT
+        name    TEXT UNIQUE
     );
     CREATE TABLE fixIdent (
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
-        name    TEXT
+        name    TEXT UNIQUE
     );
     --  This one is a repeat of IcaoCode
     --CREATE TABLE GeoIcao (
@@ -662,6 +668,10 @@ def table_define(connection):
         id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
         flag    TEXT UNIQUE
     );
+    CREATE TABLE DB_or_PN (
+        id      INTEGER NOT NULL PRIMARY KEY UNIQUE,
+        flag    TEXT UNIQUE
+    );
 
 
 
@@ -737,9 +747,11 @@ def table_define(connection):
                   REMOTE_ALT_FLAG)
     c.executemany('''INSERT INTO RNAVAuthorized (flag) VALUES (?)''',
                   [('N',), ('A',), (' ',)])
+    c.executemany('''INSERT INTO DB_or_PN (flag) VALUES (?)''',
+                  [('DB',), ('PN',)])
 
     # Default blank/null values for certain tables...
-    c.execute('INSERT INTO D_ (navaidIdent) VALUES (?)', ('    ', ))
+    c.execute('INSERT INTO navaid (ident) VALUES (?)', ('    ', ))
 
     # old things that I might come back to
     # c.executemany('''INSERT INTO ATCindicator (flag) VALUES (?);''', [('A',),('S',)])

@@ -6,8 +6,8 @@ from RecordString import CIFPLine
 
 # Temporary things I'm only allowing for MVP version
 ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
-                      'PA', 'PD', 'PE', 'PF']  #, 'PG', 'PI']
-ALLOWED_COUNTRY = 'USA'  # gonna skip Canada and Pacific lines...
+                      'PA', 'PD', 'PE', 'PF', 'PI']  # , 'PG']
+ALLOWED_COUNTRY = ['CAN', 'EEU', 'LAM', 'PAC', 'SPA', 'USA']
 
 if os.path.exists('CIFP_parse.sqlite'):
     os.remove('CIFP_parse.sqlite')
@@ -22,8 +22,6 @@ DatabaseSetup.table_define(conn)
 
 #############################
 k = 0  # counter for commits
-flag = 0  # counter for errors
-
 # with open('./Private_Files/D_example.txt', 'r') as fh:
 with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
     # Get the header info first...
@@ -50,7 +48,7 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
         elif rawdata[4:6] not in ALLOWED_DATA_LINES:
             continue
 
-        if rawdata[1:4] == ALLOWED_COUNTRY:
+        if rawdata[1:4] in ALLOWED_COUNTRY:
             pass
         else:
             continue
@@ -77,4 +75,3 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
 
 conn.commit()
 conn.close()
-print('Done with', flag, 'errors')
