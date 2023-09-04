@@ -8,7 +8,7 @@ from RecordString import CIFPLine
 ALLOWED_DATA_LINES = ['D ', 'DB', 'PN', 'EA', 'PC', 'ER',
                       'PA', 'PD', 'PE', 'PF', 'PI']  # , 'PG']
 ALLOWED_COUNTRY = ['CAN', 'EEU', 'LAM', 'PAC', 'SPA', 'USA']
-
+'''
 if os.path.exists('CIFP_parse.sqlite'):
     os.remove('CIFP_parse.sqlite')
 
@@ -23,7 +23,7 @@ DatabaseSetup.table_define(conn)
 #############################
 k = 0  # counter for commits
 # with open('./Private_Files/D_example.txt', 'r') as fh:
-with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
+with open('./Private_Files/FAACIFP18_Aug23.txt', 'r') as fh:
     # Get the header info first...
     lastspot = fh.tell()  # This "saves" our current position in file stream
     this = fh.readline().rstrip().upper()
@@ -32,7 +32,7 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
         this = fh.readline().rstrip().upper()
 
     # we need to skip back to the first line after the last header line,
-    #    because the upcoming '''in fh''' advances ANOTHER line past the last
+    #    because the upcoming ''in fh'' advances ANOTHER line past the last
     #    fh.readline()
     fh.seek(lastspot, 0)
 
@@ -75,3 +75,41 @@ with open('./Private_Files/FAACIFP18_full.txt', 'r') as fh:
 
 conn.commit()
 conn.close()
+'''
+
+USEFILE = './Private_Files/FAACIFP18_Aug23.txt'
+DATABASENAME = 'CIFP_parse.sqlite'
+
+
+def open_the_actual_file(datafile):
+    with open(datafile, 'r') as file:
+        for line in file:
+            if not (line.startswith("HDR") or not (
+                    line[1:4] in ALLOWED_COUNTRY)) and (
+                    line[4:6] in ALLOWED_DATA_LINES):
+                # avoids header lines and grid MORA lines
+                yield line.upper().rstrip()
+
+
+def main():
+    if os.path.exists(DATABASENAME):
+        os.remove(DATABASENAME)
+    # Make the actual database framework first:
+    conn = sqlite3.connect(DATABASENAME)
+    DatabaseSetup.table_define(conn)
+
+    # Where we're doing the actual work of parsing each line into the database
+    for each in open_the_actual_file(USEFILE):
+        this = CIFPLine(each, conn)
+        this.record_line()
+        print(each)
+
+    conn.commit()
+    conn.close()
+
+
+if __name__ == "__main__":
+    main()
+
+
+
